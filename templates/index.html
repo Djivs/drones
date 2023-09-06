@@ -1,5 +1,22 @@
 <html>
+    <head>
+        <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    </head>
     <h1>
         {{ .title }}
     </h1>
+    <div class="row row-cols-1 row-cols-md-4">
+        {{ range .cards}}
+            <div class="col mb-4">
+                <div class="card" style="width: 200px;">
+                    <img class="card-img-top" src="{{ .Image }}" alt="картинка">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ .Title }}</h5>
+                        <p class="card-text">{{ .Text }}</p>
+                        <button class="btn btn-primary">{{ .Button_text }}</button>
+                    </div>
+                </div>
+            </div>
+        {{ end }}
+    </div>
 </html>
