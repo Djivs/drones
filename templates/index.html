@@ -5,16 +5,14 @@
     <h1>
         {{ .title }}
     </h1>
-    <div class="row row-cols-1 row-cols-md-4">
+    <div class="card-group">
         {{ range .cards}}
-            <div class="col mb-4">
-                <div class="card" style="width: 200px;">
-                    <img class="card-img-top" src="{{ .Image }}" alt="картинка">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ .Title }}</h5>
-                        <p class="card-text">{{ .Text }}</p>
-                        <button class="btn btn-primary">{{ .Button_text }}</button>
-                    </div>
+            <div class="card" style="width: 200px;">
+                <img class="card-img-top" src="{{ .Image }}" alt="картинка">
+                <div class="card-body">
+                    <h5 class="card-title">{{ .Title }}</h5>
+                    <p class="card-text">{{ .Text }}</p>
+                    <a class="btn btn-primary" id="click-card-{{ .ID }}" href="home/{{ .ID }}">{{ .Button_text }}</a>
                 </div>
             </div>
         {{ end }}

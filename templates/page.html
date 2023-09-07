@@ -1,0 +1,15 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    </head>
+    <h1>
+        {{ .Title }}
+    </h1>
+    <div class="card" style="width: 200px;">
+        <img class="card-img-top" src="{{ .Image }}">
+        <div class="card-body">
+            <p class="card-text">{{ .Text }}</p>
+            <a class="btn btn-primary" href="../home">Go back</a>
+        </div>
+    </div>
+</html>
