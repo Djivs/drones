@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,15 +28,11 @@ func StartServer() {
 
 	r := gin.Default()
 
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
+	r.GET("/ping", ping)
 
 	r.LoadHTMLGlob("../../templates/*.html")
 	r.Static("/image", "../../resources")
-	r.Static("/node_modules", "../../node_modules")
+	r.Static("/css", "../../templates/css")
 
 	cards := []Card{
 		{1, "Title 1", "Text 1", "Button_text 1", "image/image.jpg"},
@@ -46,7 +43,6 @@ func StartServer() {
 
 	r.GET("/home", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{
-			"title": "Main Page",
 			"cards": cards,
 		})
 	})
@@ -73,7 +69,33 @@ func StartServer() {
 		})
 	})
 
-	r.Run()
+	r.GET("/search", func(c *gin.Context) {
+		card_title := c.Query("card_title")
+
+		if card_title == "" {
+			c.Redirect(http.StatusFound, "/home")
+		}
+
+		foundCards := []Card{}
+		for i := range cards {
+			if strings.HasPrefix(cards[i].Title, card_title) {
+				foundCards = append(foundCards, cards[i])
+			}
+		}
+
+		c.HTML(http.StatusOK, "search.html", gin.H{
+			"cards": foundCards,
+		})
+
+	})
+
+	r.Run(":8000")
 
 	log.Println("Server down")
+}
+
+func ping(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "pong",
+	})
 }
