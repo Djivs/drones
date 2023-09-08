@@ -48,8 +48,11 @@ func StartServer() {
 	r.GET("/ping", ping)
 
 	r.LoadHTMLGlob("../../templates/*.html")
-	r.Static("/image", "../../resources")
+
+	r.Static("/image", "../../resources/image")
 	r.Static("/css", "../../templates/css")
+	r.Static("/font", "../../resources/font")
+
 	r.GET("/home", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{
 			"cards": cards,
