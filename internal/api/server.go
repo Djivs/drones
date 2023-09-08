@@ -10,11 +10,10 @@ import (
 )
 
 type Card struct {
-	ID          int
-	Title       string
-	Text        string
-	Button_text string
-	Image       string
+	ID    int
+	Title string
+	Text  string
+	Image string
 }
 
 type CardPage struct {
@@ -25,6 +24,24 @@ type CardPage struct {
 
 func StartServer() {
 	log.Println("Server start up")
+	cards := []Card{
+		{1, "Беспилотная авиапочта", "", "image/delivery-drone.jpg"},
+		{2, "Коммерческая доставка", "", "image/commercial-delivery-drone.jpg"},
+		{3, "Дрон-рейсинг", "", "image/drone-race.jpg"},
+		{4, "Панорамная съёмка", "", "image/drone-camera.jpg"},
+	}
+	cardPages := []CardPage{
+		{"Беспилотная авиапочта", "Здесь вы сможете создать заявку для беспилотной авиапочты", "../image/delivery-drone.jpg"},
+		{"Коммерческая доставка", "Здесь вы сможете создать заявку для коммерческой доставки", "../image/commercial-delivery-drone.jpg"},
+		{"Дрон-рейсинг", "Здесь вы сможете создать заявку для дрон-рейсинга", "../image/drone-race.jpg"},
+		{"Панорамная съёмка", "Здесь вы сможете создать заявку для панорманой съёмки", "../image/drone-camera.jpg"},
+	}
+
+	idToPage := make(map[int]CardPage)
+	idToPage[1] = cardPages[0]
+	idToPage[2] = cardPages[1]
+	idToPage[3] = cardPages[2]
+	idToPage[4] = cardPages[3]
 
 	r := gin.Default()
 
@@ -33,34 +50,18 @@ func StartServer() {
 	r.LoadHTMLGlob("../../templates/*.html")
 	r.Static("/image", "../../resources")
 	r.Static("/css", "../../templates/css")
-
-	cards := []Card{
-		{1, "Title 1", "Text 1", "Button_text 1", "image/image.jpg"},
-		{2, "Title 2", "Text 2", "Button_text 2", "image/image.jpg"},
-		{3, "Title 3", "Text 3", "Button_text 3", "image/image.jpg"},
-		{4, "Title 4", "Text 4", "Button_text 4", "image/image.jpg"},
-	}
-
 	r.GET("/home", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{
 			"cards": cards,
 		})
 	})
-
-	cardPages := []CardPage{
-		{"Page title 1", "Page text 1", "../image/image.jpg"},
-		{"Page title 2", "Page text 2", "../image/image.jpg"},
-		{"Page title 3", "Page text 3", "../image/image.jpg"},
-		{"Page title 4", "Page text 4", "../image/image.jpg"},
-	}
-
 	r.GET("/home/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			panic(err)
 		}
 
-		cardPage := cardPages[id-1]
+		cardPage := idToPage[id]
 
 		c.HTML(http.StatusOK, "page.html", gin.H{
 			"Title": cardPage.Title,
@@ -68,7 +69,6 @@ func StartServer() {
 			"Text":  cardPage.Text,
 		})
 	})
-
 	r.GET("/search", func(c *gin.Context) {
 		card_title := c.Query("card_title")
 

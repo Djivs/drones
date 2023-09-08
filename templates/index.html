@@ -2,21 +2,24 @@
     <head>
         <link rel="stylesheet" href="css/style.css">
     </head>
-    <h1>
-        Заявки контроля маршрута беспилотных летательных аппаратов
-    </h1>
-        <form method="GET" action="search">
-            <label for="card_title">Input title:</label>
-            <input type="text" id="card_title" name="card_title"><br><br>
-            <input type="submit" value="Search">
+    <div class="header">
+        <h1> Заявки контроля маршрута беспилотных летательных аппаратов </h1>
+    </div>
+    <div>
+        <form method="GET" action="search" name="search" style="display:flex;align-items: center;">
+            <label for="card_title" style="color:brown;float:left;margin-right: 10px;">Введите название:</label>
+            <input type="text" id="card_title" name="card_title" style="float:left;margin-right: 20px;">
+            <input type="submit" class="link_button" value="Поиск">
         </form>
+    </div>
     <div class="card_group">
         {{ range .cards}}
-        <div class="card" style="width: 200px;">
-            <img src="{{ .Image }}" alt="картинка">
+        <div class="card">
+            <img class="card_image" src="{{ .Image }}" alt="картинка">
             <h5 class="card-title">{{ .Title }}</h5>
             <p class="card-text">{{ .Text }}</p>
-            <a class="link_button" href="home/{{ .ID }}">{{ .Button_text }}</a>
+            <a class="link_button" href="home/{{ .ID }}">Оставить заявку</a>
+            <div style="margin-bottom: 10px;"></div>
         </div>
         {{ end }}
     </div>

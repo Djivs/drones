@@ -2,12 +2,13 @@
     <head>
         <link rel="stylesheet" href="../css/style.css">
     </head>
-    <h1>
-        {{ .Title }}
-    </h1>
-    <div class="card">
-        <img src="{{ .Image }}">
-        <p>{{ .Text }}</p>
+    <div class="header">
+        <h1>Заявки контроля маршрута беспилотных летательных аппаратов</h1>
+        <h4>{{ .Title }}</h4>
+    </div>
+    <div>
+        <img class="card_image" src="{{ .Image }}">
+        <p class="card-text">{{ .Text }}</p>
         <a class="link_button" href="../home">Вернуться на домашнюю страницу</a>
     </div>
 </html>
