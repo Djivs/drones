@@ -17,6 +17,9 @@
   margin: 1em;
   width: 200px;
   border: 3px solid rgb(32, 12, 163);
+  display: grid;
+  text-align: center;
+  align-items: center;
 }
 
 .card_search {
