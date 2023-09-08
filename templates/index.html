@@ -3,22 +3,22 @@
         <link rel="stylesheet" href="css/style.css">
     </head>
     <div class="header">
-        <h1> Заявки контроля маршрута беспилотных летательных аппаратов </h1>
+        <h1> Заявки контроля маршрута БПЛА </h1>
     </div>
     <div>
         <form method="GET" action="search" name="search" style="display:flex;align-items: center;">
             <label for="card_title" style="float:left;margin-right: 10px;">Введите название:</label>
             <input type="text" id="card_title" name="card_title" style="float:left;margin-right: 20px;">
-            <input type="submit" class="link_button" value="Поиск" style="cursor: pointer !important;">
+            <input type="submit" class="button" value="Поиск" style="cursor: pointer !important;">
         </form>
     </div>
     <div class="card_group">
         {{ range .cards}}
         <div class="card">
             <img class="card_image" src="{{ .Image }}" alt="картинка">
-            <h5 class="card-title">{{ .Title }}</h5>
+            <h5 class="card_title">{{ .Title }}</h5>
             <p class="card-text">{{ .Text }}</p>
-            <a class="link_button" href="home/{{ .ID }}">Оставить заявку</a>
+            <a class="button" href="home/{{ .ID }}">Оставить заявку</a>
             <div style="margin-bottom: 10px;"></div>
         </div>
         {{ end }}

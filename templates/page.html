@@ -3,13 +3,13 @@
         <link rel="stylesheet" href="../css/style.css">
     </head>
     <div class="header">
-        <h1>Заявки контроля маршрута беспилотных летательных аппаратов</h1>
+        <h1> Заявки контроля маршрута БПЛА </h1>
         <h4>{{ .Title }}</h4>
     </div>
     <div>
-        <img class="card_image" src="{{ .Image }}">
-        <p class="card-text">{{ .Text }}</p>
-        <a class="link_button" href="../home">Вернуться на домашнюю страницу</a>
+        <img src="{{ .Image }}" style="width: 400px; height: 300px;">
+        <p>{{ .Text }}</p>
+        <a class="button" href="../home">Вернуться на домашнюю страницу</a>
     </div>
     <div style="flex:1"></div>
     <footer>Copyright (c) 2023 Dmitriy Trifonov </footer>

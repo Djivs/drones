@@ -80,14 +80,17 @@ func StartServer() {
 		}
 
 		foundCards := []Card{}
+		lowerCardTitle := strings.ToLower(card_title)
 		for i := range cards {
-			if strings.HasPrefix(cards[i].Title, card_title) {
+			if strings.Contains(strings.ToLower(cards[i].Title), lowerCardTitle) {
 				foundCards = append(foundCards, cards[i])
 			}
 		}
 
 		c.HTML(http.StatusOK, "search.html", gin.H{
-			"cards": foundCards,
+			"cards":       foundCards,
+			"Amount":      len(foundCards),
+			"Search_text": card_title,
 		})
 
 	})
