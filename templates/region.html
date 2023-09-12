@@ -9,8 +9,10 @@
     <div>
         <img src="{{ .Image }}" style="width: 200px;">
         <p>{{ .Text }}</p>
-        <p>{{ .Details }}</p>
-        <a class="button" href="..">Вернуться на домашнюю страницу</a>
+        <p style="margin-left: 10px;"> Площадь: {{ .AreaKm}} км^2</p>
+        <p style="margin-left: 10px;"> Население: {{ .Population }} чел.</p>
+        <p style="margin-left: 10px;">{{ .Details }}</p>
+        <a class="button" href="..">Домой</a>
     </div>
     <div style="flex:1"></div>
     <footer>Copyright © 2023 Dmitriy Trifonov </footer>
