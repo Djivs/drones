@@ -3,45 +3,26 @@ package api
 import (
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Card struct {
-	ID    int
-	Title string
-	Text  string
-	Image string
-}
-
-type CardPage struct {
-	Title string
-	Text  string
-	Image string
+	Title   string
+	Text    string
+	Image   string
+	Details string
 }
 
 func StartServer() {
 	log.Println("Server start up")
 	cards := []Card{
-		{1, "Беспилотная авиапочта", "", "image/delivery-drone.jpg"},
-		{2, "Коммерческая доставка", "", "image/commercial-delivery-drone.jpg"},
-		{3, "Дрон-рейсинг", "", "image/drone-race.jpg"},
-		{4, "Панорамная съёмка", "", "image/drone-camera.jpg"},
+		{"Кузьминки", "ЮВАО", "image/kuzminki.jpg", "Заявка для Кузьминок"},
+		{"Люберцы", "МО", "image/lyubertsi.jpg", "Заявка для Люберец"},
+		{"Савёловский", "САО", "image/savyolovsky.jpg", "Заявка для Савёловского"},
+		{"Строгино", "СЗАО", "image/strogino.jpg", "Заявка для Строгино"},
 	}
-	cardPages := []CardPage{
-		{"Беспилотная авиапочта", "Здесь вы сможете создать заявку для беспилотной авиапочты", "../image/delivery-drone.jpg"},
-		{"Коммерческая доставка", "Здесь вы сможете создать заявку для коммерческой доставки", "../image/commercial-delivery-drone.jpg"},
-		{"Дрон-рейсинг", "Здесь вы сможете создать заявку для дрон-рейсинга", "../image/drone-race.jpg"},
-		{"Панорамная съёмка", "Здесь вы сможете создать заявку для панорманой съёмки", "../image/drone-camera.jpg"},
-	}
-
-	idToPage := make(map[int]CardPage)
-	idToPage[1] = cardPages[0]
-	idToPage[2] = cardPages[1]
-	idToPage[3] = cardPages[2]
-	idToPage[4] = cardPages[3]
 
 	r := gin.Default()
 
@@ -53,30 +34,14 @@ func StartServer() {
 	r.Static("/css", "../../templates/css")
 	r.Static("/font", "../../resources/font")
 
-	r.GET("/home", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"cards": cards,
-		})
-	})
-	r.GET("/home/:id", func(c *gin.Context) {
-		id, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			panic(err)
-		}
-
-		cardPage := idToPage[id]
-
-		c.HTML(http.StatusOK, "page.html", gin.H{
-			"Title": cardPage.Title,
-			"Image": cardPage.Image,
-			"Text":  cardPage.Text,
-		})
-	})
-	r.GET("/search", func(c *gin.Context) {
+	r.GET("/", func(c *gin.Context) {
 		card_title := c.Query("card_title")
 
 		if card_title == "" {
-			c.Redirect(http.StatusFound, "/home")
+			c.HTML(http.StatusOK, "index.html", gin.H{
+				"cards": cards,
+			})
+			return
 		}
 
 		foundCards := []Card{}
@@ -93,6 +58,20 @@ func StartServer() {
 			"Search_text": card_title,
 		})
 
+	})
+	r.GET("/:title", func(c *gin.Context) {
+		title := c.Param("title")
+
+		for i := range cards {
+			if cards[i].Title == title {
+				c.HTML(http.StatusOK, "page.html", gin.H{
+					"Title":   cards[i].Title,
+					"Image":   "../" + cards[i].Image,
+					"Text":    cards[i].Text,
+					"Details": cards[i].Details,
+				})
+			}
+		}
 	})
 
 	r.Run(":8000")

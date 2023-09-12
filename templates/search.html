@@ -14,14 +14,14 @@
         <div class="card">
             <img class="card_image" src="{{ .Image }}" alt="картинка">
             <h5 class="card_title">{{ .Title }}</h5>
-            <p class="card_text">{{ .Text }}</p>
-            <a class="button" href="home/{{ .ID }}">Оставить заявку</a>
+            <p class="card-text">{{ .Text }}</p>
+            <a class="button" href="{{ .Title }}">Оставить заявку</a>
             <div style="margin-bottom: 10px;"></div>
         </div>
         {{ end }}
     </div>
     <div style="margin-bottom: 10px;"></div>
-    <a class="button" href="../home" style="max-width: 400px;">Вернуться на главную страницу</a>
+    <a class="button" href=".." style="max-width: 400px;">Вернуться на главную страницу</a>
     <div style="flex:1"></div>
-    <footer>Copyright (c) 2023 Dmitriy Trifonov </footer>
+    <footer>Copyright © 2023 Dmitriy Trifonov </footer>
 </html>
