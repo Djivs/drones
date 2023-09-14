@@ -1,7 +1,7 @@
 package ds
 
 type Region struct {
-	ID         uint `gorm:primaryKey`
+	ID         uint `gorm:"primaryKey"`
 	Name       string
 	Details    string
 	AreaKm     float64
