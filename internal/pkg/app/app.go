@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"drones/internal/app/dsn"
 	"drones/internal/app/repository"
 
 	"github.com/gin-gonic/gin"
@@ -12,18 +13,29 @@ import (
 
 type Application struct {
 	repo repository.Repository
+	r    *gin.Engine
 }
 
 func New() Application {
-	return Application{}
+	app := Application{}
+
+	repo, _ := repository.New(dsn.FromEnv())
+
+	app.repo = *repo
+
+	return app
+
 }
 
 func (a *Application) StartServer() {
-	log.Println("Server start up")
+	log.Println("Server started")
 
-	r := gin.Default()
+	a.r = gin.Default()
 
-	r.GET("/ping", func(c *gin.Context) {
+	a.r.LoadHTMLGlob("../../templates/*.html")
+	a.r.Static("/css", "../../templates/css")
+
+	a.r.GET("/ping", func(c *gin.Context) {
 		id := c.Query("id") // получаем из запроса query string
 
 		if id != "" {
@@ -35,6 +47,11 @@ func (a *Application) StartServer() {
 				return
 			}
 			log.Printf("id translated!")
+
+			regions, err := a.repo.GetAllRegions()
+			for i := range regions {
+				log.Println(regions[i].Name)
+			}
 
 			region, err := a.repo.GetRegionByID(intID)
 			if err != nil { // если не получилось
@@ -55,7 +72,7 @@ func (a *Application) StartServer() {
 		})
 	})
 
-	r.Run(":8000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	a.r.Run(":8000")
 
-	log.Println("Server down")
+	log.Println("Server is down")
 }

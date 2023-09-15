@@ -4,15 +4,22 @@ import (
 	"gorm.io/datatypes"
 )
 
-type Region struct {
-	ID         uint `gorm:"primaryKey"`
-	Name       string
-	Details    string
-	AreaKm     float64
-	Population int
+type District struct {
+	ID   uint `gorm:"primaryKey"`
+	Name string
 }
 
-type UserRole struct {
+type Region struct {
+	ID            uint `gorm:"primaryKey"`
+	DistrictRefer int
+	Name          string
+	Details       string
+	AreaKm        float64
+	District      District `gorm:"foreignKey:DistrictRefer"`
+	Population    int
+}
+
+type Role struct {
 	ID   uint `gorm:"primaryKey"`
 	Name string
 }
@@ -26,7 +33,7 @@ type User struct {
 	ID            uint `gorm:"primaryKey"`
 	Name          string
 	UserRoleRefer int
-	Role          UserRole `gorm:"foreignKey:UserRoleRefer"`
+	Role          Role `gorm:"foreignKey:UserRoleRefer"`
 }
 
 type Flight struct {
