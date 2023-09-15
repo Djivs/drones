@@ -17,8 +17,57 @@ func main() {
 	}
 
 	// Migrate the schema
-	err = db.AutoMigrate(&ds.Region{})
+
+	MigrateSchema(db)
+}
+
+func MigrateSchema(db *gorm.DB) {
+	MigrateUserRole(db)
+	MigrateFlightStatus(db)
+	MigrateUser(db)
+	MigrateRegion(db)
+	MigrateFlight(db)
+	MigrateFlightToRegion(db)
+}
+
+func MigrateRegion(db *gorm.DB) {
+	err := db.AutoMigrate(&ds.Region{})
 	if err != nil {
-		panic("cant migrate db")
+		panic("cant migrate Region to db")
+	}
+}
+
+func MigrateUserRole(db *gorm.DB) {
+	err := db.AutoMigrate(&ds.UserRole{})
+	if err != nil {
+		panic("cant migrate UserRole to db")
+	}
+}
+
+func MigrateFlightStatus(db *gorm.DB) {
+	err := db.AutoMigrate(&ds.FlightStatus{})
+	if err != nil {
+		panic("cant migrate FlightStatus to db")
+	}
+}
+
+func MigrateUser(db *gorm.DB) {
+	err := db.AutoMigrate(&ds.User{})
+	if err != nil {
+		panic("cant migrate User to db")
+	}
+}
+
+func MigrateFlight(db *gorm.DB) {
+	err := db.AutoMigrate(&ds.Flight{})
+	if err != nil {
+		panic("cant migrate Flight to db")
+	}
+}
+
+func MigrateFlightToRegion(db *gorm.DB) {
+	err := db.AutoMigrate(&ds.FlightToRegion{})
+	if err != nil {
+		panic("cant migrate FlightToRegion db")
 	}
 }
