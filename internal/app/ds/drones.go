@@ -10,13 +10,17 @@ type District struct {
 }
 
 type Region struct {
-	ID            uint `gorm:"primaryKey"`
-	DistrictRefer int
-	Name          string
-	Details       string
-	AreaKm        float64
-	District      District `gorm:"foreignKey:DistrictRefer"`
-	Population    int
+	ID             uint `gorm:"primaryKey"`
+	DistrictRefer  int
+	Name           string
+	Details        string
+	AreaKm         float64
+	District       District `gorm:"foreignKey:DistrictRefer"`
+	Population     int
+	HeadName       string
+	HeadEmail      string
+	HeadPhone      string
+	AverageHeightM float64
 }
 
 type Role struct {

@@ -38,37 +38,38 @@ func (a *Application) StartServer() {
 	a.r.GET("/ping", func(c *gin.Context) {
 		id := c.Query("id") // получаем из запроса query string
 
-		if id != "" {
-			log.Printf("id recived %s\n", id)
-			intID, err := strconv.Atoi(id) // пытаемся привести это к чиселке
-			if err != nil {                // если не получилось
-				log.Printf("cant convert id %v", err)
-				c.Error(err)
-				return
-			}
-			log.Printf("id translated!")
-
-			regions, err := a.repo.GetAllRegions()
-			for i := range regions {
-				log.Println(regions[i].Name)
-			}
-
-			region, err := a.repo.GetRegionByID(intID)
-			if err != nil { // если не получилось
-				log.Printf("cant get region by id %v", err)
-				c.Error(err)
-				return
-			}
-
-			log.Printf("got region by id")
-
+		if id == "" {
 			c.JSON(http.StatusOK, gin.H{
-				"region_population": region.Population,
+				"message": "pong",
 			})
 			return
 		}
+
+		log.Printf("id recived %s\n", id)
+		intID, err := strconv.Atoi(id) // пытаемся привести это к чиселке
+		if err != nil {                // если не получилось
+			log.Printf("cant convert id %v", err)
+			c.Error(err)
+			return
+		}
+		log.Printf("id translated!")
+
+		regions, err := a.repo.GetAllRegions()
+		for i := range regions {
+			log.Println(regions[i].Name)
+		}
+
+		region, err := a.repo.GetRegionByID(intID)
+		if err != nil { // если не получилось
+			log.Printf("cant get region by id %v", err)
+			c.Error(err)
+			return
+		}
+
+		log.Printf("got region by id")
+
 		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
+			"region_population": region.Population,
 		})
 	})
 

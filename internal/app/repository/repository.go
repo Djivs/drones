@@ -33,10 +33,6 @@ func (r *Repository) GetRegionByID(id int) (*ds.Region, error) {
 	return region, nil
 }
 
-func (r *Repository) CreateRegion(region ds.Region) error {
-	return r.db.Create(region).Error
-}
-
 func (r *Repository) GetAllRegions() ([]ds.Region, error) {
 	regions := []ds.Region{}
 
@@ -47,4 +43,8 @@ func (r *Repository) GetAllRegions() ([]ds.Region, error) {
 	}
 
 	return regions, nil
+}
+
+func (r *Repository) CreateRegion(region ds.Region) error {
+	return r.db.Create(region).Error
 }
