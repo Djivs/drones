@@ -48,3 +48,27 @@ func (r *Repository) GetAllRegions() ([]ds.Region, error) {
 func (r *Repository) CreateRegion(region ds.Region) error {
 	return r.db.Create(region).Error
 }
+
+func (r *Repository) CreateDistrict(district ds.District) error {
+	return r.db.Create(district).Error
+}
+
+func (r *Repository) CreateRole(role ds.Role) error {
+	return r.db.Create(role).Error
+}
+
+func (r *Repository) CreateFlightStatus(flight_status ds.FlightStatus) error {
+	return r.db.Create(flight_status).Error
+}
+
+func (r *Repository) CreateUser(user ds.User) error {
+	return r.db.Create(user).Error
+}
+
+func (r *Repository) CreateFlight(flight ds.Flight) error {
+	return r.db.Create(flight).Error
+}
+
+func (r *Repository) CreateFlightToRegion(flight_to_region ds.FlightToRegion) error {
+	return r.db.Create(flight_to_region).Error
+}

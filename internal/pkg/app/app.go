@@ -70,10 +70,34 @@ func (a *Application) StartServer() {
 
 		c.JSON(http.StatusOK, gin.H{
 			"region_population": region.Population,
+			"region_district":   region.District.Name,
 		})
 	})
+
+	a.r.GET("/", a.loadHome)
 
 	a.r.Run(":8000")
 
 	log.Println("Server is down")
+}
+
+func (a *Application) loadHome(c *gin.Context) {
+	region_name := c.Query("region_name")
+
+	if region_name == "" {
+
+		all_regions, err := a.repo.GetAllRegions()
+		log.Println(len(all_regions))
+		if err != nil {
+			c.Error(err)
+		}
+
+		c.HTML(http.StatusOK, "regions.html", gin.H{
+			"regions": all_regions,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "pong",
+	})
 }

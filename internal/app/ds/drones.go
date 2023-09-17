@@ -21,6 +21,7 @@ type Region struct {
 	HeadEmail      string
 	HeadPhone      string
 	AverageHeightM float64
+	Image          string `gorm:"type:bytea"`
 }
 
 type Role struct {
