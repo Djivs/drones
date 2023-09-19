@@ -33,6 +33,28 @@ func (r *Repository) GetRegionByID(id int) (*ds.Region, error) {
 	return region, nil
 }
 
+func (r *Repository) GetRegionByName(name string) (*ds.Region, error) {
+	region := &ds.Region{}
+
+	err := r.db.First(region, "name = ?", name).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return region, nil
+}
+
+func (r *Repository) SearchRegions(region_name string) ([]ds.Region, error) {
+	regions := []ds.Region{}
+
+	err := r.db.Raw("select * from search_region(?)", region_name).Scan(&regions).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return regions, nil
+}
+
 func (r *Repository) GetAllRegions() ([]ds.Region, error) {
 	regions := []ds.Region{}
 
@@ -43,6 +65,10 @@ func (r *Repository) GetAllRegions() ([]ds.Region, error) {
 	}
 
 	return regions, nil
+}
+
+func (r *Repository) DeleteRegion(region_name string) error {
+	return r.db.Delete(&ds.Region{}, "name = ?", region_name).Error
 }
 
 func (r *Repository) CreateRegion(region ds.Region) error {

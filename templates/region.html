@@ -4,13 +4,17 @@
     </head>
     <div class="header">
         <h1> Заявки контроля маршрута БПЛА </h1>
-        <h4>{{ .Title }}</h4>
+        <h4>{{ .Name }}</h4>
     </div>
     <div>
-        <img src="{{ .Image }}" style="width: 200px;">
+        <img src="data:image/jpg;base64, {{ .Image }}" style="width: 200px;">
         <p>{{ .Text }}</p>
         <p style="margin-left: 10px;"> Площадь: {{ .AreaKm}} км^2</p>
         <p style="margin-left: 10px;"> Население: {{ .Population }} чел.</p>
+        <p style="margin-left: 10px;"> Глава управы: {{ .HeadName }}</p>
+        <p style="margin-left: 10px;"> Email главы управы: {{ .HeadEmail }}</p>
+        <p style="margin-left: 10px;"> Телефон главы управы: {{ .HeadPhone }}</p>
+        <p style="margin-left: 10px;"> Средняя высота: {{ .AverageHeightM }}</p>
         <p style="margin-left: 10px;">{{ .Details }}</p>
         <a class="button" href="..">Домой</a>
     </div>

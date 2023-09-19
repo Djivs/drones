@@ -75,6 +75,18 @@ func (a *Application) StartServer() {
 	})
 
 	a.r.GET("/", a.loadHome)
+	a.r.GET("/:region_name", a.loadPage)
+	a.r.POST("/delete_region/:region_name", func(c *gin.Context) {
+		region_name := c.Param("region_name")
+		err := a.repo.DeleteRegion(region_name)
+
+		if err != nil {
+			c.Error(err)
+			return
+		}
+
+		c.Redirect(http.StatusFound, "/")
+	})
 
 	a.r.Run(":8000")
 
@@ -87,7 +99,7 @@ func (a *Application) loadHome(c *gin.Context) {
 	if region_name == "" {
 
 		all_regions, err := a.repo.GetAllRegions()
-		log.Println(len(all_regions))
+
 		if err != nil {
 			c.Error(err)
 		}
@@ -95,9 +107,44 @@ func (a *Application) loadHome(c *gin.Context) {
 		c.HTML(http.StatusOK, "regions.html", gin.H{
 			"regions": all_regions,
 		})
+	} else {
+		found_regions, err := a.repo.SearchRegions(region_name)
+
+		if err != nil {
+			c.Error(err)
+			return
+		}
+
+		c.HTML(http.StatusOK, "regions.html", gin.H{
+			"regions": found_regions,
+		})
+	}
+}
+
+func (a *Application) loadPage(c *gin.Context) {
+	region_name := c.Param("region_name")
+
+	if region_name == "favicon.ico" {
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "pong",
+	region, err := a.repo.GetRegionByName(region_name)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.HTML(http.StatusOK, "region.html", gin.H{
+		"Name":           region.Name,
+		"Image":          region.Image,
+		"AreaKm":         region.AreaKm,
+		"Population":     region.Population,
+		"Details":        region.Details,
+		"HeadName":       region.HeadName,
+		"HeadEmail":      region.HeadEmail,
+		"HeadPhone":      region.HeadPhone,
+		"AverageHeightM": region.AverageHeightM,
 	})
+
 }
