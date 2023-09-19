@@ -4,6 +4,10 @@
   font-family: 'Fira Code';
 }
 
+.region_line {
+  margin-left: 10px;
+}
+
 .card_group {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -63,7 +67,7 @@
 }
 
 .header {
-  padding: 30px;
+  padding: 15px;
   text-align: center  ;
   background:rgb(7, 62, 172);
   color: white;

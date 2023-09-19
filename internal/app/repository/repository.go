@@ -67,6 +67,23 @@ func (r *Repository) GetAllRegions() ([]ds.Region, error) {
 	return regions, nil
 }
 
+func (r *Repository) FilterActiveRegions(regions []ds.Region) []ds.Region {
+	var new_regions = []ds.Region{}
+
+	for i := range regions {
+		if regions[i].RegionStatusRefer == 1 {
+			new_regions = append(new_regions, regions[i])
+		}
+	}
+
+	return new_regions
+
+}
+
+func (r *Repository) LogicalDeleteRegion(region_name string) error {
+	return r.db.Model(&ds.Region{}).Where("name = ?", region_name).Update("region_status_refer", 2).Error
+}
+
 func (r *Repository) DeleteRegion(region_name string) error {
 	return r.db.Delete(&ds.Region{}, "name = ?", region_name).Error
 }
