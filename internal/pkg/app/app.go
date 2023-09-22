@@ -33,19 +33,18 @@ func (a *Application) StartServer() {
 
 	a.r.LoadHTMLGlob("../../templates/*.html")
 	a.r.Static("/css", "../../templates/css")
+	a.r.Static("/js", "../../templates/js")
 
-	a.r.GET("/", a.loadHome)
-	a.r.GET("/:region_name", a.loadPage)
-	a.r.POST("/delete_region/:region_name", func(c *gin.Context) {
+	a.r.GET("/", a.loadRegions)
+	a.r.GET("/:region_name", a.loadRegion)
+	a.r.DELETE("/regions/:region_name", func(c *gin.Context) {
 		region_name := c.Param("region_name")
 		err := a.repo.LogicalDeleteRegion(region_name)
 
 		if err != nil {
 			c.Error(err)
-			return
 		}
 
-		c.Redirect(http.StatusFound, "/")
 	})
 
 	a.r.Run(":8000")
@@ -53,7 +52,7 @@ func (a *Application) StartServer() {
 	log.Println("Server is down")
 }
 
-func (a *Application) loadHome(c *gin.Context) {
+func (a *Application) loadRegions(c *gin.Context) {
 	region_name := c.Query("region_name")
 
 	if region_name == "" {
@@ -76,12 +75,13 @@ func (a *Application) loadHome(c *gin.Context) {
 		}
 
 		c.HTML(http.StatusOK, "regions.html", gin.H{
-			"regions": a.repo.FilterActiveRegions(found_regions),
+			"regions":     a.repo.FilterActiveRegions(found_regions),
+			"Search_text": region_name,
 		})
 	}
 }
 
-func (a *Application) loadPage(c *gin.Context) {
+func (a *Application) loadRegion(c *gin.Context) {
 	region_name := c.Param("region_name")
 
 	if region_name == "favicon.ico" {
