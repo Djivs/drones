@@ -1,13 +1,15 @@
 package main
 
 import (
+	"drones/internal/pkg/app"
 	"log"
-
-	"drones/internal/api"
 )
 
 func main() {
 	log.Println("Application start!")
-	api.StartServer()
+
+	a := app.New()
+	a.StartServer()
+
 	log.Println("Application terminated!")
 }

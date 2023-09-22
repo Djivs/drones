@@ -4,11 +4,15 @@
   font-family: 'Fira Code';
 }
 
+.region_line {
+  margin-left: 10px;
+}
+
 .card_group {
-  overflow-y: hidden;
-  display:flex;
-  align-items: stretch;
-  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  grid-auto-rows: minmax(100px, auto);
 }
 
 .card {
@@ -17,8 +21,9 @@
   float: left;
   margin: 1em;
   width: 225px;
-  height: 400px;
+  height: 425px;
   border: 3px solid rgb(32, 12, 163);
+  align-items:left;
 }
 
 .card_search {  
@@ -47,7 +52,6 @@
 }
 
 .button {
-  float:left;
   border-radius: 4px;
   border: solid 3px rgb(7, 62, 172);
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
@@ -63,7 +67,7 @@
 }
 
 .header {
-  padding: 30px;
+  padding: 15px;
   text-align: center  ;
   background:rgb(7, 62, 172);
   color: white;

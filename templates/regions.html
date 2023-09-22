@@ -7,18 +7,22 @@
     </div>
     <div>
         <form method="GET" action="" name="search" style="display:flex;align-items: center;">
-            <label for="card_title" style="float:left;margin-right: 10px;margin-left:10px">Введите название:</label>
-            <input type="text" id="card_title" name="card_title" style="float:left;margin-right: 20px;">
+            <label for="region_name" style="float:left;margin-right: 10px;margin-left:10px">Введите название:</label>
+            <input type="text" id="region_name" name="region_name" style="float:left;margin-right: 20px;">
             <input type="submit" class="button" value="Поиск" style="cursor: pointer !important;">
         </form>
     </div>
     <div class="card_group">
-        {{ range .cards}}
+        {{ range .regions}}
         <div class="card">
-            <img class="card_image" src="{{ .Image }}" alt="картинка">
-            <h5 class="card_title">{{ .Title }}</h5>
-            <p class="card-text">{{ .Text }}</p>
-            <a class="button card_button" href="{{ .Title }}">Подробнее</a>
+            <img class="card_image" src="data:image/jpg;base64, {{ .Image }}" alt="картинка">
+            <h5 class="card_title">{{ .Name }}</h5>
+            <p class="card-text">{{ .District.Name }}</p>
+            <form method="POST" action="delete_region/{{ .Name }}" name="delete_region">
+                <input type="hidden" name="card_title" id="card_title" value="{{ .Name }}">
+                <input type="submit" class="button" value="Удалить" style="cursor: pointer !important;">
+            </form>
+            <a class="button card_button" href="{{ .Name }}">Подробнее</a>
         </div>
         {{ end }}
     </div>
