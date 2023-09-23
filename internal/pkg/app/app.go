@@ -45,7 +45,6 @@ func (a *Application) StartServer() {
 }
 
 func (a *Application) loadRegions(c *gin.Context) {
-	log.Println("loaded home!")
 	region_name := c.Query("region_name")
 
 	if region_name == "" {
