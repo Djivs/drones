@@ -44,7 +44,6 @@ func (a *Application) StartServer() {
 		if err != nil {
 			c.Error(err)
 		}
-
 	})
 
 	a.r.Run(":8000")
@@ -53,18 +52,21 @@ func (a *Application) StartServer() {
 }
 
 func (a *Application) loadRegions(c *gin.Context) {
+	log.Println("loaded home!")
 	region_name := c.Query("region_name")
 
 	if region_name == "" {
-
 		all_regions, err := a.repo.GetAllRegions()
 
 		if err != nil {
+			log.Println(err)
 			c.Error(err)
 		}
 
+		filtered_regions := a.repo.FilterActiveRegions(all_regions)
+
 		c.HTML(http.StatusOK, "regions.html", gin.H{
-			"regions": a.repo.FilterActiveRegions(all_regions),
+			"regions": filtered_regions,
 		})
 	} else {
 		found_regions, err := a.repo.SearchRegions(region_name)

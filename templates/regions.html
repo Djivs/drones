@@ -2,8 +2,6 @@
     <head>
         <link rel="stylesheet" href=" css/style.css">
     </head>
-    <script src="js/library.js"></script>
-    <script src="js/app.js"></script>
     <div class="header">
         <h1> Заявки контроля маршрута БПЛА </h1>
     </div>
@@ -19,7 +17,6 @@
         <div class="card">
             <img class="card_image" src="data:image/jpg;base64, {{ .Image }}" alt="картинка">
             <h5 class="card_title">{{ .Name }}</h5>
-            <button class="button card_button"  id="{{ .Name }}" onclick="sendRegionDeleteRequest(this.id)">Удалить</button>
             <a class="button card_button" href="{{ .Name }}">Подробнее</a>
         </div>
         {{ end }}

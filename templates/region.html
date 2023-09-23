@@ -2,6 +2,8 @@
     <head>
         <link rel="stylesheet" href="../css/style.css">
     </head>
+    <script src="js/library.js"></script>
+    <script src="js/app.js"></script>
     <div class="header">
         <h1> Заявки контроля маршрута БПЛА </h1>
         <h4>{{ .Name }}</h4>
@@ -17,6 +19,7 @@
         <p class="region_line"> Средняя высота: {{ .AverageHeightM }}</p>
         <p class="region_line">Описание района: {{ .Details }}</p>
         <a class="button" href="..">Домой</a>
+        <button href="/regions" class="button card_button"  id="{{ .Name }}" onclick="sendRegionDeleteRequest(this.id)">Удалить</button>
     </div>
     <div style="flex:1"></div>
     <footer>Copyright © 2023 Dmitriy Trifonov </footer>
