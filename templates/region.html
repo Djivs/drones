@@ -8,8 +8,8 @@
         <h1> Заявки контроля маршрута БПЛА </h1>
         <h4>{{ .Name }}</h4>
     </div>
-    <div>
-        <img src="data:image/jpg;base64, {{ .Image }}" class="card_image">
+    <div style="display: flex;flex-direction: column;">
+        <img src="data:image/jpg;base64, {{ .Image }}" class="page_image">
         <p>{{ .Text }}</p>
         <p class="region_line"> Площадь: {{ .AreaKm}} км^2</p>
         <p class="region_line"> Население: {{ .Population }} чел.</p>
@@ -18,8 +18,8 @@
         <p class="region_line"> Телефон главы управы: {{ .HeadPhone }}</p>
         <p class="region_line"> Средняя высота: {{ .AverageHeightM }}</p>
         <p class="region_line">Описание района: {{ .Details }}</p>
-        <a class="button" href="..">Домой</a>
-        <button href="/regions" class="button card_button"  id="{{ .Name }}" onclick="sendRegionDeleteRequest(this.id)">Удалить</button>
+        <a class="button page_button" href="..">Домой</a>
+        <a href="/" class="button page_button"  id="{{ .Name }}" onclick="sendRegionDeleteRequest(this.id)">Удалить</a>
     </div>
     <div style="flex:1"></div>
     <footer>Copyright © 2023 Dmitriy Trifonov </footer>

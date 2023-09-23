@@ -3,11 +3,17 @@ function sendRegionDeleteRequest(region_name) {
         return;
     }
 
-    fetch('regions/' + region_name, {
-        method: 'DELETE'
-    });
+    // Instantiating new EasyHTTP class
+    const http = new DeleteHTTP;
 
-    fetch('/', {
-        method: 'GET'
-    });
+    // Update Post
+    http.delete('regions/' + region_name)
+
+    // Resolving promise for response data
+    .then(data => console.log(data))
+
+    // Resolving promise for error
+    .catch(err => console.log(err))
+
+    .finally(fetch("/", {method: "GET"}));
 }
