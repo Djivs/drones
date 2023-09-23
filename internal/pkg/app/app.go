@@ -37,14 +37,7 @@ func (a *Application) StartServer() {
 
 	a.r.GET("/", a.loadRegions)
 	a.r.GET("/:region_name", a.loadRegion)
-	a.r.DELETE("/regions/:region_name", func(c *gin.Context) {
-		region_name := c.Param("region_name")
-		err := a.repo.LogicalDeleteRegion(region_name)
-
-		if err != nil {
-			c.Error(err)
-		}
-	})
+	a.r.POST("/delete_region/:region_name", a.loadRegionChangeVisibility)
 
 	a.r.Run(":8000")
 
@@ -63,10 +56,8 @@ func (a *Application) loadRegions(c *gin.Context) {
 			c.Error(err)
 		}
 
-		filtered_regions := a.repo.FilterActiveRegions(all_regions)
-
 		c.HTML(http.StatusOK, "regions.html", gin.H{
-			"regions": filtered_regions,
+			"regions": all_regions,
 		})
 	} else {
 		found_regions, err := a.repo.SearchRegions(region_name)
@@ -77,7 +68,7 @@ func (a *Application) loadRegions(c *gin.Context) {
 		}
 
 		c.HTML(http.StatusOK, "regions.html", gin.H{
-			"regions":     a.repo.FilterActiveRegions(found_regions),
+			"regions":     found_regions,
 			"Search_text": region_name,
 		})
 	}
@@ -107,6 +98,17 @@ func (a *Application) loadRegion(c *gin.Context) {
 		"HeadEmail":      region.HeadEmail,
 		"HeadPhone":      region.HeadPhone,
 		"AverageHeightM": region.AverageHeightM,
+		"Region_status":  region.Status,
 	})
+}
 
+func (a *Application) loadRegionChangeVisibility(c *gin.Context) {
+	region_name := c.Param("region_name")
+	err := a.repo.ChangeRegionVisibility(region_name)
+
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Redirect(http.StatusFound, "/"+region_name)
 }
