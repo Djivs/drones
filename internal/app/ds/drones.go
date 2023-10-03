@@ -4,60 +4,43 @@ import (
 	"gorm.io/datatypes"
 )
 
-type District struct {
-	ID   uint `gorm:"primaryKey"`
-	Name string
-}
-
 type Region struct {
-	ID             uint `gorm:"primaryKey"`
-	DistrictRefer  int
-	Name           string
-	Details        string
-	Status         string
+	ID             uint `gorm:"primaryKey;AUTO_INCREMENT"`
+	District       string
+	Name           string `gorm:"type:varchar(50);unique;not null"`
+	Details        string `gorm:"type:text"`
+	Status         string `gorm:"not null"`
 	AreaKm         float64
 	Population     int
-	HeadName       string
-	HeadEmail      string
-	HeadPhone      string
+	HeadName       string `gorm:"type:varchar(250)"`
+	HeadEmail      string `gorm:"type:varchar(50)"`
+	HeadPhone      string `gorm:"type:varchar(50)"`
 	AverageHeightM float64
 	Image          string `gorm:"type:bytea"`
 }
 
-type Role struct {
-	ID   uint `gorm:"primaryKey"`
-	Name string
-}
-
-type FlightStatus struct {
-	ID   uint `gorm:"primaryKey"`
-	Name string
-}
-
 type User struct {
-	ID            uint `gorm:"primaryKey"`
-	Name          string
-	UserRoleRefer int
-	Role          Role `gorm:"foreignKey:UserRoleRefer"`
+	ID   uint   `gorm:"primaryKey;AUTO_INCREMENT"`
+	Name string `gorm:"type:varchar(50);not null"`
+	Role string `gorm:"type:varchar(50);not null"`
 }
 
 type Flight struct {
-	ID                uint `gorm:"primaryKey"`
-	UserRefer         int
-	FlightStatusRefer int
-	Status            FlightStatus `gorm:"foreignKey:FlightStatusRefer"`
-	DateCreated       datatypes.Date
-	DateProcessed     datatypes.Date
-	DateFinished      datatypes.Date
-	Moderator         User `gorm:"foreignKey:UserRefer"`
-	TakeoffDate       datatypes.Date
-	ArrivalDate       datatypes.Date
+	ID             uint `gorm:"primaryKey;AUTO_INCREMENT"`
+	ModeratorRefer int
+	Status         string         `gorm:"type:varchar(50)"`
+	DateCreated    datatypes.Date `gorm:"not null"`
+	DateProcessed  datatypes.Date
+	DateFinished   datatypes.Date
+	Moderator      User           `gorm:"foreignKey:ModeratorRefer"`
+	TakeoffDate    datatypes.Date `gorm:"not null"`
+	ArrivalDate    datatypes.Date `gorm:"not null"`
 }
 
 type FlightToRegion struct {
-	ID          uint `gorm:"primaryKey"`
-	FlightRefer int
-	RegionRefer int
+	ID          uint   `gorm:"primaryKey;AUTO_INCREMENT"`
+	FlightRefer int    `gorm:"not null"`
+	RegionRefer int    `gorm:"not null"`
 	Flight      Flight `gorm:"foreignKey:FlightRefer"`
 	Region      Region `gorm:"foreignKey:RegionRefer"`
 }

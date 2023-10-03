@@ -22,8 +22,6 @@ func main() {
 }
 
 func MigrateSchema(db *gorm.DB) {
-	MigrateRole(db)
-	MigrateFlightStatus(db)
 	MigrateUser(db)
 	MigrateRegion(db)
 	MigrateFlight(db)
@@ -34,20 +32,6 @@ func MigrateRegion(db *gorm.DB) {
 	err := db.AutoMigrate(&ds.Region{})
 	if err != nil {
 		panic("cant migrate Region to db")
-	}
-}
-
-func MigrateRole(db *gorm.DB) {
-	err := db.AutoMigrate(&ds.Role{})
-	if err != nil {
-		panic("cant migrate UserRole to db")
-	}
-}
-
-func MigrateFlightStatus(db *gorm.DB) {
-	err := db.AutoMigrate(&ds.FlightStatus{})
-	if err != nil {
-		panic("cant migrate FlightStatus to db")
 	}
 }
 
