@@ -118,17 +118,27 @@ func (r *Repository) DeleteRegion(region_name string) error {
 }
 
 func (r *Repository) CreateRegion(region ds.Region) error {
-	return r.db.Create(region).Error
+	return r.db.Create(&region).Error
 }
 
 func (r *Repository) CreateUser(user ds.User) error {
-	return r.db.Create(user).Error
+	return r.db.Create(&user).Error
 }
 
 func (r *Repository) CreateFlight(flight ds.Flight) error {
-	return r.db.Create(flight).Error
+	return r.db.Create(&flight).Error
 }
 
 func (r *Repository) CreateFlightToRegion(flight_to_region ds.FlightToRegion) error {
-	return r.db.Create(flight_to_region).Error
+	return r.db.Create(&flight_to_region).Error
+}
+
+func (r *Repository) FindRegion(region ds.Region) (ds.Region, error) {
+	var result ds.Region
+	err := r.db.Where(&region).First(&result).Error
+	if err != nil {
+		return ds.Region{}, err
+	} else {
+		return result, nil
+	}
 }

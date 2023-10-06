@@ -4,15 +4,12 @@ import (
 	"log"
 	"net/http"
 
+	"drones/internal/app/ds"
 	"drones/internal/app/dsn"
 	"drones/internal/app/repository"
 
 	"github.com/gin-gonic/gin"
 )
-
-type PingRequestBody struct {
-	Message string
-}
 
 type Application struct {
 	repo repository.Repository
@@ -35,21 +32,62 @@ func (a *Application) StartServer() {
 
 	a.r = gin.Default()
 	a.r.GET("ping", ping)
+	a.r.GET("regions", a.get_regions)
+	a.r.GET("region", a.get_region)
+
+	a.r.PUT("region", a.add_region)
 
 	a.r.Run(":8000")
 
 	log.Println("Server is down")
 }
 
-func regions(c *gin.Context) {
+func (a *Application) get_regions(c *gin.Context) {
+	regions, err := a.repo.GetAllRegions()
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusFound, regions)
+}
+
+func (a *Application) add_region(c *gin.Context) {
+	var region ds.Region
+
+	if err := c.BindJSON(&region); err != nil {
+		c.Error(err)
+		return
+	}
+
+	err := a.repo.CreateRegion(region)
+
+	if err != nil {
+		log.Println(err)
+		c.Error(err)
+		return
+	}
+
+	c.String(http.StatusCreated, "Region created successfully")
 
 }
 
-func add_region(c *gin.Context) {
+func (a *Application) get_region(c *gin.Context) {
+	var region ds.Region
 
-}
+	if err := c.BindJSON(&region); err != nil {
+		c.Error(err)
+		return
+	}
 
-func get_region(c *gin.Context) {
+	found_region, err := a.repo.FindRegion(region)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusFound, found_region)
 
 }
 
@@ -98,14 +136,6 @@ func change_flight_to_region_value(c *gin.Context) {
 }
 
 func ping(c *gin.Context) {
-	var requestBody PingRequestBody
-
-	if err := c.BindJSON(&requestBody); err != nil {
-		// DO SOMETHING WITH THE ERROR
-	}
-
-	log.Println(requestBody.Message)
-
 	c.JSON(http.StatusOK, gin.H{
 		"message": "pong",
 	})
