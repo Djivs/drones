@@ -2,8 +2,9 @@ package repository
 
 import (
 	"log"
-	"strings"
+	"time"
 
+	"gorm.io/datatypes"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -25,17 +26,6 @@ func New(dsn string) (*Repository, error) {
 	}, nil
 }
 
-func (r *Repository) GetRegionByID(id int) (*ds.Region, error) {
-	region := &ds.Region{}
-
-	err := r.db.First(region, "id = ?", id).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return region, nil
-}
-
 func (r *Repository) GetRegionByName(name string) (*ds.Region, error) {
 	region := &ds.Region{}
 
@@ -47,22 +37,48 @@ func (r *Repository) GetRegionByName(name string) (*ds.Region, error) {
 	return region, nil
 }
 
-func (r *Repository) SearchRegions(region_name string) ([]ds.Region, error) {
-	regions := []ds.Region{}
+func (r *Repository) GetRegionByID(id int) (*ds.Region, error) {
+	region := &ds.Region{}
 
-	all_regions, all_regions_err := r.GetAllRegions()
-
-	if all_regions_err != nil {
-		return nil, all_regions_err
+	err := r.db.First(region, "id = ?", id).Error
+	if err != nil {
+		return nil, err
 	}
 
-	for i := range all_regions {
-		if strings.Contains(strings.ToLower(all_regions[i].Name), strings.ToLower(region_name)) {
-			regions = append(regions, all_regions[i])
-		}
+	return region, nil
+}
+
+func (r *Repository) GetUserByID(id int) (*ds.User, error) {
+	user := &ds.User{}
+
+	err := r.db.First(user, "id = ?", id).Error
+	if err != nil {
+		return nil, err
 	}
 
-	return regions, nil
+	return user, nil
+}
+
+func (r *Repository) GetUserID(name string) (int, error) {
+	user := &ds.User{}
+
+	err := r.db.First(user, "name = ?", name).Error
+	if err != nil {
+		return -1, err
+	}
+
+	return int(user.ID), nil
+}
+
+func (r *Repository) GetRegionID(name string) (int, error) {
+	region := &ds.Region{}
+
+	err := r.db.First(region, "name = ?", name).Error
+	if err != nil {
+		return -1, err
+	}
+
+	return int(region.ID), nil
 }
 
 func (r *Repository) GetAllRegions() ([]ds.Region, error) {
@@ -77,44 +93,25 @@ func (r *Repository) GetAllRegions() ([]ds.Region, error) {
 	return regions, nil
 }
 
-func (r *Repository) FilterActiveRegions(regions []ds.Region) []ds.Region {
-	var new_regions = []ds.Region{}
+func (r *Repository) GetAllFlights() ([]ds.Flight, error) {
+	flights := []ds.Flight{}
 
-	for i := range regions {
-		if regions[i].Status == "Действует" {
-			new_regions = append(new_regions, regions[i])
-		}
-	}
-
-	return new_regions
-
-}
-
-func (r *Repository) LogicalDeleteRegion(region_name string) error {
-	return r.db.Model(&ds.Region{}).Where("name = ?", region_name).Update("status", "Недоступен").Error
-}
-
-func (r *Repository) ChangeRegionVisibility(region_name string) error {
-	region, err := r.GetRegionByName(region_name)
+	err := r.db.Find(&flights).Error
 
 	if err != nil {
-		log.Println(err)
-		return err
+		return nil, err
 	}
 
-	new_status := ""
-
-	if region.Status == "Действует" {
-		new_status = "Недоступен"
-	} else {
-		new_status = "Действует"
+	for i := range flights {
+		if flights[i].ModeratorRefer != 0 {
+			moderator, _ := r.GetUserByID(flights[i].ModeratorRefer)
+			flights[i].Moderator = *moderator
+		}
+		user, _ := r.GetUserByID(flights[i].UserRefer)
+		flights[i].User = *user
 	}
 
-	return r.db.Model(&ds.Region{}).Where("name = ?", region_name).Update("status", new_status).Error
-}
-
-func (r *Repository) DeleteRegion(region_name string) error {
-	return r.db.Delete(&ds.Region{}, "name = ?", region_name).Error
+	return flights, nil
 }
 
 func (r *Repository) CreateRegion(region ds.Region) error {
@@ -133,6 +130,10 @@ func (r *Repository) CreateFlightToRegion(flight_to_region ds.FlightToRegion) er
 	return r.db.Create(&flight_to_region).Error
 }
 
+func (r *Repository) DeleteRegion(region_name string) error {
+	return r.db.Delete(&ds.Region{}, "name = ?", region_name).Error
+}
+
 func (r *Repository) FindRegion(region ds.Region) (ds.Region, error) {
 	var result ds.Region
 	err := r.db.Where(&region).First(&result).Error
@@ -141,4 +142,72 @@ func (r *Repository) FindRegion(region ds.Region) (ds.Region, error) {
 	} else {
 		return result, nil
 	}
+}
+
+func (r *Repository) FindFlight(flight ds.Flight) (ds.Flight, error) {
+	var result ds.Flight
+	err := r.db.Where(&flight).First(&result).Error
+	if err != nil {
+		return ds.Flight{}, err
+	} else {
+		return result, nil
+	}
+}
+
+func (r *Repository) EditRegion(region ds.Region) error {
+	return r.db.Model(&ds.Region{}).Where("name = ?", region.Name).Updates(region).Error
+}
+
+func (r *Repository) EditFlight(flight ds.Flight) error {
+	return r.db.Model(&ds.Flight{}).Where("id = ?", flight.ID).Updates(flight).Error
+}
+
+func (r *Repository) BookRegion(requestBody ds.BookRegionRequestBody) error {
+	user_id, err := r.GetUserID(requestBody.UserName)
+
+	if err != nil {
+		return err
+	}
+
+	var region_id int
+	region_id, err = r.GetRegionID(requestBody.RegionName)
+	if err != nil {
+		return err
+	}
+
+	log.Println(requestBody.TakeoffDate, requestBody.ArrivalDate, "!!!!!")
+
+	current_date := datatypes.Date(time.Now())
+	takeoff_date, err := time.Parse(time.RFC3339, requestBody.TakeoffDate+"T00:00:00Z")
+	if err != nil {
+		return err
+	}
+	arrival_date, err := time.Parse(time.RFC3339, requestBody.ArrivalDate+"T00:00:00Z")
+	if err != nil {
+		return err
+	}
+
+	log.Println(takeoff_date, arrival_date, "!!!!!")
+
+	flight := ds.Flight{}
+	flight.TakeoffDate = datatypes.Date(takeoff_date)
+	flight.ArrivalDate = datatypes.Date(arrival_date)
+	flight.UserRefer = user_id
+	flight.DateCreated = current_date
+
+	log.Println(flight.TakeoffDate, flight.ArrivalDate, "!!!!!")
+
+	err = r.db.Omit("moderator_refer", "date_processed", "date_finished").Create(&flight).Error
+
+	if err != nil {
+		return err
+	}
+
+	flight_to_region := ds.FlightToRegion{}
+	flight_to_region.FlightRefer = int(flight.ID)
+	flight_to_region.RegionRefer = int(region_id)
+	err = r.CreateFlightToRegion(flight_to_region)
+
+	return err
+
 }

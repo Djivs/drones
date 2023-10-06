@@ -34,8 +34,14 @@ func (a *Application) StartServer() {
 	a.r.GET("ping", ping)
 	a.r.GET("regions", a.get_regions)
 	a.r.GET("region", a.get_region)
+	a.r.GET("flights", a.get_flights)
 
-	a.r.PUT("region", a.add_region)
+	a.r.POST("book", a.book_region)
+
+	a.r.PUT("region/add", a.add_region)
+	a.r.PUT("region/edit", a.edit_region)
+
+	a.r.DELETE("region/delete/:region_name", a.delete_region)
 
 	a.r.Run(":8000")
 
@@ -91,28 +97,101 @@ func (a *Application) get_region(c *gin.Context) {
 
 }
 
-func edit_region(c *gin.Context) {
+func (a *Application) edit_region(c *gin.Context) {
+	var region ds.Region
+
+	if err := c.BindJSON(&region); err != nil {
+		c.Error(err)
+		return
+	}
+
+	err := a.repo.EditRegion(region)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.String(http.StatusCreated, "Region was successfuly edited")
 
 }
 
-func delete_region(c *gin.Context) {
+func (a *Application) delete_region(c *gin.Context) {
+	region_name := c.Query("region_name")
+
+	err := a.repo.DeleteRegion(region_name)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.String(http.StatusFound, "Region was successfully deleted")
+}
+
+func (a *Application) book_region(c *gin.Context) {
+	var request_body ds.BookRegionRequestBody
+
+	if err := c.BindJSON(&request_body); err != nil {
+		c.Error(err)
+		return
+	}
+
+	err := a.repo.BookRegion(request_body)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.String(http.StatusCreated, "Region was successfully booked")
 
 }
 
-func add_to_last_flight(c *gin.Context) {
+func (a *Application) get_flights(c *gin.Context) {
+	flights, err := a.repo.GetAllFlights()
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
+	c.JSON(http.StatusFound, flights)
 }
 
-func flights(c *gin.Context) {
+func (a *Application) get_flight(c *gin.Context) {
+	var flight ds.Flight
 
+	if err := c.BindJSON(&flight); err != nil {
+		c.Error(err)
+		return
+	}
+
+	found_flight, err := a.repo.FindFlight(flight)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusFound, found_flight)
 }
 
-func flight(c *gin.Context) {
+func (a *Application) edit_flight(c *gin.Context) {
+	var flight ds.Flight
 
-}
+	if err := c.BindJSON(&flight); err != nil {
+		c.Error(err)
+		return
+	}
 
-func edit_flight(c *gin.Context) {
+	err := a.repo.EditFlight(flight)
 
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.String(http.StatusCreated, "Region was successfuly edited")
 }
 
 func flight_status_change_creator(c *gin.Context) {
