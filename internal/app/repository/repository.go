@@ -134,6 +134,14 @@ func (r *Repository) DeleteRegion(region_name string) error {
 	return r.db.Delete(&ds.Region{}, "name = ?", region_name).Error
 }
 
+func (r *Repository) DeleteFlight(id int) error {
+	return r.db.Delete(&ds.Flight{}, "id = ?", id).Error
+}
+
+func (r *Repository) DeleteFlightToRegion(flight_id int, region_id int) error {
+	return r.db.Where("flight_refer = ?", flight_id).Where("region_refer = ?", region_id).Delete(&ds.FlightToRegion{}).Error
+}
+
 func (r *Repository) FindRegion(region ds.Region) (ds.Region, error) {
 	var result ds.Region
 	err := r.db.Where(&region).First(&result).Error
@@ -210,4 +218,8 @@ func (r *Repository) BookRegion(requestBody ds.BookRegionRequestBody) error {
 
 	return err
 
+}
+
+func (r *Repository) ChangeFlightStatus(id int, status string) error {
+	return r.db.Model(&ds.Flight{}).Where("id = ?", id).Update("status", status).Error
 }

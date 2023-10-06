@@ -10,3 +10,13 @@ type BookRegionRequestBody struct {
 	ArrivalDate string
 	RegionName  string
 }
+
+type ChangeFlightStatusRequestBody struct {
+	ID     int
+	Status string
+}
+
+type DeleteFlightToRegionRequestBody struct {
+	FlightID int
+	RegionID int
+}

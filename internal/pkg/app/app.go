@@ -3,6 +3,7 @@ package app
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"drones/internal/app/ds"
 	"drones/internal/app/dsn"
@@ -194,24 +195,54 @@ func (a *Application) edit_flight(c *gin.Context) {
 	c.String(http.StatusCreated, "Region was successfuly edited")
 }
 
-func flight_status_change_creator(c *gin.Context) {
+func (a *Application) flight_status_change(c *gin.Context) {
+	var requestBody ds.ChangeFlightStatusRequestBody
+
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.Error(err)
+		return
+	}
+
+	err := a.repo.ChangeFlightStatus(requestBody.ID, requestBody.Status)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.String(http.StatusCreated, "Flight status was successfully changed")
 
 }
 
-func flight_status_change_moderator(c *gin.Context) {
+func (a *Application) delete_flight(c *gin.Context) {
+	flight_id, _ := strconv.Atoi(c.Param("flight_id"))
 
+	err := a.repo.DeleteFlight(flight_id)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.String(http.StatusFound, "Flight was successfully deleted")
 }
 
-func delete_flight(c *gin.Context) {
+func (a *Application) delete_flight_to_region(c *gin.Context) {
+	var requestBody ds.DeleteFlightToRegionRequestBody
 
-}
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.Error(err)
+		return
+	}
 
-func delete_flight_to_region(c *gin.Context) {
+	err := a.repo.DeleteFlightToRegion(requestBody.FlightID, requestBody.RegionID)
 
-}
+	if err != nil {
+		c.Error(err)
+		return
+	}
 
-func change_flight_to_region_value(c *gin.Context) {
-
+	c.String(http.StatusCreated, "Flight status was successfully changed")
 }
 
 func ping(c *gin.Context) {
