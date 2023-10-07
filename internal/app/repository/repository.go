@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"log"
 	"time"
 
 	"gorm.io/datatypes"
@@ -81,10 +80,29 @@ func (r *Repository) GetRegionID(name string) (int, error) {
 	return int(region.ID), nil
 }
 
-func (r *Repository) GetAllRegions() ([]ds.Region, error) {
+func (r *Repository) GetUserRole(name string) (string, error) {
+	user := &ds.User{}
+
+	err := r.db.First(user, "name = ?", name).Error
+	if err != nil {
+		return "", err
+	}
+
+	return user.Role, nil
+}
+
+func (r *Repository) GetAllRegions(requestBody ds.GetRegionsRequestBody) ([]ds.Region, error) {
 	regions := []ds.Region{}
 
-	err := r.db.Find(&regions).Error
+	var tx *gorm.DB = r.db
+	if requestBody.District != "" {
+		tx = tx.Where("district = ?", requestBody.District)
+	}
+	if requestBody.Status != "" {
+		tx = tx.Where("status = ?", requestBody.Status)
+	}
+
+	err := tx.Find(&regions).Error
 
 	if err != nil {
 		return nil, err
@@ -93,10 +111,15 @@ func (r *Repository) GetAllRegions() ([]ds.Region, error) {
 	return regions, nil
 }
 
-func (r *Repository) GetAllFlights() ([]ds.Flight, error) {
+func (r *Repository) GetAllFlights(requestBody ds.GetFlightsRequestBody) ([]ds.Flight, error) {
 	flights := []ds.Flight{}
 
-	err := r.db.Find(&flights).Error
+	var tx *gorm.DB = r.db
+	if requestBody.Status != "" {
+		tx = tx.Where("status = ?", requestBody.Status)
+	}
+
+	err := tx.Find(&flights).Error
 
 	if err != nil {
 		return nil, err
@@ -142,6 +165,14 @@ func (r *Repository) DeleteFlightToRegion(flight_id int, region_id int) error {
 	return r.db.Where("flight_refer = ?", flight_id).Where("region_refer = ?", region_id).Delete(&ds.FlightToRegion{}).Error
 }
 
+func (r *Repository) LogicalDeleteRegion(region_name string) error {
+	return r.db.Model(&ds.Region{}).Where("name = ?", region_name).Update("status", "Недоступен").Error
+}
+
+func (r *Repository) LogicalDeleteFlight(flight_id int) error {
+	return r.db.Model(&ds.Flight{}).Where("id = ?", flight_id).Update("status", "Удалён").Error
+}
+
 func (r *Repository) FindRegion(region ds.Region) (ds.Region, error) {
 	var result ds.Region
 	err := r.db.Where(&region).First(&result).Error
@@ -157,9 +188,19 @@ func (r *Repository) FindFlight(flight ds.Flight) (ds.Flight, error) {
 	err := r.db.Where(&flight).First(&result).Error
 	if err != nil {
 		return ds.Flight{}, err
-	} else {
-		return result, nil
 	}
+
+	var user ds.User
+	r.db.Where("id = ?", result.UserRefer).First(&user)
+
+	result.User = user
+
+	var moderator ds.User
+	r.db.Where("id = ?", result.ModeratorRefer).First(&user)
+
+	result.Moderator = moderator
+
+	return result, nil
 }
 
 func (r *Repository) EditRegion(region ds.Region) error {
@@ -183,8 +224,6 @@ func (r *Repository) BookRegion(requestBody ds.BookRegionRequestBody) error {
 		return err
 	}
 
-	log.Println(requestBody.TakeoffDate, requestBody.ArrivalDate, "!!!!!")
-
 	current_date := datatypes.Date(time.Now())
 	takeoff_date, err := time.Parse(time.RFC3339, requestBody.TakeoffDate+"T00:00:00Z")
 	if err != nil {
@@ -195,15 +234,11 @@ func (r *Repository) BookRegion(requestBody ds.BookRegionRequestBody) error {
 		return err
 	}
 
-	log.Println(takeoff_date, arrival_date, "!!!!!")
-
 	flight := ds.Flight{}
 	flight.TakeoffDate = datatypes.Date(takeoff_date)
 	flight.ArrivalDate = datatypes.Date(arrival_date)
 	flight.UserRefer = user_id
 	flight.DateCreated = current_date
-
-	log.Println(flight.TakeoffDate, flight.ArrivalDate, "!!!!!")
 
 	err = r.db.Omit("moderator_refer", "date_processed", "date_finished").Create(&flight).Error
 

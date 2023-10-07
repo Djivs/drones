@@ -32,17 +32,23 @@ func (a *Application) StartServer() {
 	log.Println("Server started")
 
 	a.r = gin.Default()
-	a.r.GET("ping", ping)
 	a.r.GET("regions", a.get_regions)
 	a.r.GET("region", a.get_region)
 	a.r.GET("flights", a.get_flights)
+	a.r.GET("flight", a.get_flight)
 
-	a.r.POST("book", a.book_region)
+	a.r.PUT("book", a.book_region)
 
 	a.r.PUT("region/add", a.add_region)
 	a.r.PUT("region/edit", a.edit_region)
+	a.r.PUT("flight/edit", a.edit_flight)
+	a.r.PUT("flight/status_change/moderator", a.flight_mod_status_change)
+	a.r.PUT("flight/status_change/user", a.flight_user_status_change)
 
-	a.r.DELETE("region/delete/:region_name", a.delete_region)
+	a.r.PUT("region/delete/:region_name", a.delete_region)
+	a.r.PUT("flight/delete/:flight_id", a.delete_flight)
+
+	a.r.DELETE("flight_to_region/delete", a.delete_flight_to_region)
 
 	a.r.Run(":8000")
 
@@ -50,7 +56,11 @@ func (a *Application) StartServer() {
 }
 
 func (a *Application) get_regions(c *gin.Context) {
-	regions, err := a.repo.GetAllRegions()
+	var requestBody ds.GetRegionsRequestBody
+
+	c.BindJSON(&requestBody)
+
+	regions, err := a.repo.GetAllRegions(requestBody)
 	if err != nil {
 		c.Error(err)
 		return
@@ -63,15 +73,14 @@ func (a *Application) add_region(c *gin.Context) {
 	var region ds.Region
 
 	if err := c.BindJSON(&region); err != nil {
-		c.Error(err)
+		c.String(http.StatusBadRequest, "Can't parse region\n"+err.Error())
 		return
 	}
 
 	err := a.repo.CreateRegion(region)
 
 	if err != nil {
-		log.Println(err)
-		c.Error(err)
+		c.String(http.StatusNotFound, "Can't create region\n"+err.Error())
 		return
 	}
 
@@ -120,7 +129,7 @@ func (a *Application) edit_region(c *gin.Context) {
 func (a *Application) delete_region(c *gin.Context) {
 	region_name := c.Query("region_name")
 
-	err := a.repo.DeleteRegion(region_name)
+	err := a.repo.LogicalDeleteRegion(region_name)
 
 	if err != nil {
 		c.Error(err)
@@ -135,6 +144,7 @@ func (a *Application) book_region(c *gin.Context) {
 
 	if err := c.BindJSON(&request_body); err != nil {
 		c.Error(err)
+		c.String(http.StatusBadGateway, "Cant' parse json")
 		return
 	}
 
@@ -142,6 +152,7 @@ func (a *Application) book_region(c *gin.Context) {
 
 	if err != nil {
 		c.Error(err)
+		c.String(http.StatusNotFound, "Can't book region")
 		return
 	}
 
@@ -150,7 +161,11 @@ func (a *Application) book_region(c *gin.Context) {
 }
 
 func (a *Application) get_flights(c *gin.Context) {
-	flights, err := a.repo.GetAllFlights()
+	var requestBody ds.GetFlightsRequestBody
+
+	c.BindJSON(&requestBody)
+
+	flights, err := a.repo.GetAllFlights(requestBody)
 	if err != nil {
 		c.Error(err)
 		return
@@ -192,10 +207,40 @@ func (a *Application) edit_flight(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusCreated, "Region was successfuly edited")
+	c.String(http.StatusCreated, "Flight was successfuly edited")
 }
 
-func (a *Application) flight_status_change(c *gin.Context) {
+func (a *Application) flight_mod_status_change(c *gin.Context) {
+	var requestBody ds.ChangeFlightStatusRequestBody
+
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.Error(err)
+		return
+	}
+
+	user_role, err := a.repo.GetUserRole(requestBody.UserName)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	if user_role != "Модератор" {
+		c.String(http.StatusBadRequest, "у пользователя должна быть роль модератора")
+		return
+	}
+
+	err = a.repo.ChangeFlightStatus(requestBody.ID, requestBody.Status)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.String(http.StatusCreated, "Flight status was successfully changed")
+}
+
+func (a *Application) flight_user_status_change(c *gin.Context) {
 	var requestBody ds.ChangeFlightStatusRequestBody
 
 	if err := c.BindJSON(&requestBody); err != nil {
@@ -211,13 +256,12 @@ func (a *Application) flight_status_change(c *gin.Context) {
 	}
 
 	c.String(http.StatusCreated, "Flight status was successfully changed")
-
 }
 
 func (a *Application) delete_flight(c *gin.Context) {
 	flight_id, _ := strconv.Atoi(c.Param("flight_id"))
 
-	err := a.repo.DeleteFlight(flight_id)
+	err := a.repo.LogicalDeleteFlight(flight_id)
 
 	if err != nil {
 		c.Error(err)
@@ -242,11 +286,5 @@ func (a *Application) delete_flight_to_region(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusCreated, "Flight status was successfully changed")
-}
-
-func ping(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "pong",
-	})
+	c.String(http.StatusCreated, "Flight-to-region m-m was successfully deleted")
 }

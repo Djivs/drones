@@ -1,7 +1,12 @@
 package ds
 
-type PingRequestBody struct {
-	Message string
+type GetRegionsRequestBody struct {
+	District string
+	Status   string
+}
+
+type GetFlightsRequestBody struct {
+	Status string
 }
 
 type BookRegionRequestBody struct {
@@ -12,8 +17,9 @@ type BookRegionRequestBody struct {
 }
 
 type ChangeFlightStatusRequestBody struct {
-	ID     int
-	Status string
+	ID       int
+	Status   string
+	UserName string
 }
 
 type DeleteFlightToRegionRequestBody struct {
