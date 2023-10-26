@@ -33,7 +33,7 @@ func (a *Application) StartServer() {
 
 	a.r = gin.Default()
 	a.r.GET("regions", a.get_regions)
-	a.r.GET("region", a.get_region)
+	a.r.GET("region/:region", a.get_region)
 	a.r.GET("flights", a.get_flights)
 	a.r.GET("flight", a.get_flight)
 
@@ -89,12 +89,8 @@ func (a *Application) add_region(c *gin.Context) {
 }
 
 func (a *Application) get_region(c *gin.Context) {
-	var region ds.Region
-
-	if err := c.BindJSON(&region); err != nil {
-		c.Error(err)
-		return
-	}
+	var region = ds.Region{}
+	region.Name = c.Param("region")
 
 	found_region, err := a.repo.FindRegion(region)
 
