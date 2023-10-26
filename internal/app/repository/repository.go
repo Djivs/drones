@@ -94,7 +94,13 @@ func (r *Repository) GetUserRole(name string) (string, error) {
 func (r *Repository) GetAllRegions(name_pattern string, district string, status string) ([]ds.Region, error) {
 	regions := []ds.Region{}
 
-	var tx *gorm.DB = r.db.Where("name like ?", "%"+name_pattern+"%")
+	var tx *gorm.DB = r.db
+
+	if name_pattern != "" {
+		tx = tx.Where("name like ?", "%"+name_pattern+"%")
+
+	}
+
 	if district != "" {
 		tx = tx.Where("district = ?", district)
 	}
