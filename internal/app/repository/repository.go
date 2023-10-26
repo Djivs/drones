@@ -91,15 +91,15 @@ func (r *Repository) GetUserRole(name string) (string, error) {
 	return user.Role, nil
 }
 
-func (r *Repository) GetAllRegions(requestBody ds.GetRegionsRequestBody) ([]ds.Region, error) {
+func (r *Repository) GetAllRegions(name_pattern string, district string, status string) ([]ds.Region, error) {
 	regions := []ds.Region{}
 
-	var tx *gorm.DB = r.db
-	if requestBody.District != "" {
-		tx = tx.Where("district = ?", requestBody.District)
+	var tx *gorm.DB = r.db.Where("name like ?", "%"+name_pattern+"%")
+	if district != "" {
+		tx = tx.Where("district = ?", district)
 	}
-	if requestBody.Status != "" {
-		tx = tx.Where("status = ?", requestBody.Status)
+	if status != "" {
+		tx = tx.Where("status = ?", status)
 	}
 
 	err := tx.Find(&regions).Error

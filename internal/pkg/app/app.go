@@ -56,11 +56,11 @@ func (a *Application) StartServer() {
 }
 
 func (a *Application) get_regions(c *gin.Context) {
-	var requestBody ds.GetRegionsRequestBody
+	var name_pattern = c.Query("name_pattern")
+	var district = c.Query("district")
+	var status = c.Query("status")
 
-	c.BindJSON(&requestBody)
-
-	regions, err := a.repo.GetAllRegions(requestBody)
+	regions, err := a.repo.GetAllRegions(name_pattern, district, status)
 	if err != nil {
 		c.Error(err)
 		return
