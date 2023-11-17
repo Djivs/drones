@@ -123,7 +123,9 @@ func (a *Application) edit_region(c *gin.Context) {
 }
 
 func (a *Application) delete_region(c *gin.Context) {
-	region_name := c.Query("region_name")
+	region_name := c.Param("region_name")
+
+	log.Println(region_name)
 
 	err := a.repo.LogicalDeleteRegion(region_name)
 
