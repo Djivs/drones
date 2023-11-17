@@ -34,6 +34,7 @@ func (a *Application) StartServer() {
 	a.r = gin.Default()
 	a.r.GET("regions", a.get_regions)
 	a.r.GET("region/:region", a.get_region)
+
 	a.r.GET("flights", a.get_flights)
 	a.r.GET("flight", a.get_flight)
 
@@ -46,6 +47,7 @@ func (a *Application) StartServer() {
 	a.r.PUT("flight/status_change/user", a.flight_user_status_change)
 
 	a.r.PUT("region/delete/:region_name", a.delete_region)
+	a.r.PUT("region/delete_restore/:region_name", a.delete_restore_region)
 	a.r.PUT("flight/delete/:flight_id", a.delete_flight)
 
 	a.r.DELETE("flight_to_region/delete", a.delete_flight_to_region)
@@ -135,6 +137,19 @@ func (a *Application) delete_region(c *gin.Context) {
 	}
 
 	c.String(http.StatusFound, "Region was successfully deleted")
+}
+
+func (a *Application) delete_restore_region(c *gin.Context) {
+	region_name := c.Param("region_name")
+
+	err := a.repo.DeleteRestoreRegion(region_name)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.String(http.StatusFound, "Region status was successfully switched")
 }
 
 func (a *Application) book_region(c *gin.Context) {

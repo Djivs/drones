@@ -80,6 +80,17 @@ func (r *Repository) GetRegionID(name string) (int, error) {
 	return int(region.ID), nil
 }
 
+func (r *Repository) GetRegionStatus(name string) (string, error) {
+	region := &ds.Region{}
+
+	err := r.db.First(region, "name = ?", name).Error
+	if err != nil {
+		return "", err
+	}
+
+	return region.Status, nil
+}
+
 func (r *Repository) GetUserRole(name string) (string, error) {
 	user := &ds.User{}
 
@@ -177,6 +188,25 @@ func (r *Repository) LogicalDeleteRegion(region_name string) error {
 
 func (r *Repository) LogicalDeleteFlight(flight_id int) error {
 	return r.db.Model(&ds.Flight{}).Where("id = ?", flight_id).Update("status", "Удалён").Error
+}
+
+func (r *Repository) DeleteRestoreRegion(region_name string) error {
+	var new_status string
+
+	region_status, err := r.GetRegionStatus(region_name)
+
+	if err != nil {
+		return err
+	}
+
+	if region_status == "Действует" {
+		new_status = "Недоступен"
+	} else {
+		new_status = "Действует"
+	}
+
+	return r.db.Model(&ds.Region{}).Where("name = ?", region_name).Update("status", new_status).Error
+
 }
 
 func (r *Repository) FindRegion(region ds.Region) (ds.Region, error) {
