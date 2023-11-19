@@ -1,9 +1,13 @@
 package app
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"drones/internal/app/ds"
 	"drones/internal/app/dsn"
@@ -11,6 +15,8 @@ import (
 
 	docs "drones/docs"
 
+	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
@@ -22,6 +28,17 @@ import (
 type Application struct {
 	repo repository.Repository
 	r    *gin.Engine
+}
+
+type loginReq struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
+type loginResp struct {
+	ExpiresIn   int    `json:"expires_in"`
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
 }
 
 func New() Application {
@@ -60,6 +77,10 @@ func (a *Application) StartServer() {
 
 	docs.SwaggerInfo.BasePath = "/"
 	a.r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+
+	a.r.POST("/login", a.login)
+	a.r.GET("/somefunc", a.SomeFunc)
+	a.r.Use(a.WithAuthCheck).GET("/ping", a.Ping)
 
 	a.r.Run(":8000")
 
@@ -408,4 +429,93 @@ func (a *Application) delete_flight_to_region(c *gin.Context) {
 	}
 
 	c.String(http.StatusCreated, "Flight-to-region m-m was successfully deleted")
+}
+
+type pingReq struct{}
+type pingResp struct {
+	Status string `json:"status"`
+}
+
+// @Summary      Show hello text
+// @Description  very very friendly response
+// @Tags         Tests
+// @Produce      json
+// @Success      200  {object}  pingResp
+// @Router       /ping/{name} [get]
+func (a *Application) Ping(gCtx *gin.Context) {
+	name := gCtx.Param("name")
+	gCtx.String(http.StatusOK, "Hello %s", name)
+}
+
+func (a *Application) SomeFunc(c *gin.Context) {
+	c.String(http.StatusCreated, "Nothing happend here!")
+}
+
+func (a *Application) login(c *gin.Context) {
+	log.Println("i am here")
+	req := &loginReq{}
+
+	err := json.NewDecoder(c.Request.Body).Decode(req)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+
+		return
+	}
+
+	log.Println(req)
+
+	if req.Login == "admin" && req.Password == "admin" {
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, &ds.JWTClaims{
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: time.Now().Add(3600000000000).Unix(),
+				IssuedAt:  time.Now().Unix(),
+				Issuer:    "dj1vs",
+			},
+			UserUUID: uuid.New(), // test uuid
+			Scopes:   []string{}, // test data
+		})
+
+		if token == nil {
+			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("token is nil"))
+
+			return
+		}
+
+		jwtToken := "test"
+
+		strToken, err := token.SignedString([]byte(jwtToken))
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("cant read str token"))
+
+			return
+		}
+
+		c.JSON(http.StatusOK, loginResp{
+			ExpiresIn:   3600000000000,
+			AccessToken: strToken,
+			TokenType:   "Bearer",
+		})
+	}
+
+	c.AbortWithStatus(http.StatusForbidden)
+}
+
+func createSignedTokenString() (string, error) {
+	privateKey, err := ioutil.ReadFile("demo.rsa")
+	if err != nil {
+		return "", fmt.Errorf("error reading private key file: %v\n", err)
+	}
+
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(privateKey)
+	if err != nil {
+		return "", fmt.Errorf("error parsing RSA private key: %v\n", err)
+	}
+
+	token := jwt.New(jwt.SigningMethodRS256)
+	tokenString, err := token.SignedString(key)
+	if err != nil {
+		return "", fmt.Errorf("error signing token: %v\n", err)
+	}
+
+	return tokenString, nil
 }
