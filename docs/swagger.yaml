@@ -1,0 +1,215 @@
+basePath: /
+host: 127.0.0.1:8000
+info:
+  contact: {}
+  description: UAV route control applications
+  title: drones
+  version: 0.0-0
+paths:
+  /book:
+    put:
+      consumes:
+      - application/json
+      description: Creates a new flight and adds current region in it
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Book region
+      tags:
+      - general
+  /flight:
+    get:
+      consumes:
+      - application/json
+      description: Returns flight with given parameters
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Get flight
+      tags:
+      - flights
+  /flight/delete/:flight_id:
+    put:
+      consumes:
+      - application/json
+      description: Changes flight status to "Удалён"
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Deletes flight
+      tags:
+      - flights
+  /flight/edit:
+    put:
+      consumes:
+      - application/json
+      description: Finds flight and updates it fields
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Edits flight
+      tags:
+      - flights
+  /flight/status_change/moderator:
+    put:
+      consumes:
+      - application/json
+      description: Changes flight status to any available status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Changes flight status as moderator
+      tags:
+      - flights
+  /flight/status_change/user:
+    put:
+      consumes:
+      - application/json
+      description: Changes flight status as allowed to user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Changes flights status as user
+      tags:
+      - flights
+  /flight_to_region/delete:
+    put:
+      consumes:
+      - application/json
+      description: Deletes region from flight
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Deletes flight_to_region connection
+      tags:
+      - flights
+  /flights:
+    get:
+      description: Returns list of all available flights
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+          schema:
+            type: string
+      summary: Get flights
+      tags:
+      - flights
+  /region/:region:
+    get:
+      description: Returns region with given name
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Get region
+      tags:
+      - regions
+  /region/add:
+    put:
+      consumes:
+      - application/json
+      description: Creates a new reigon with parameters, specified in json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Adds region to database
+      tags:
+      - regions
+  /region/delete/:region_name:
+    put:
+      consumes:
+      - application/json
+      description: Finds region by name and changes its status to "Недоступен"
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Deletes region
+      tags:
+      - regions
+  /region/delete_restore/:region_name:
+    get:
+      description: Switches region status from "Действует" to "Недоступен" and back
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Deletes or restores region
+      tags:
+      - regions
+  /region/edit:
+    put:
+      consumes:
+      - application/json
+      description: Finds region by name and updates its fields
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Edits region
+      tags:
+      - regions
+  /regions:
+    get:
+      consumes:
+      - application/json
+      description: Returns all existing regions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: ""
+      summary: Get all existing regions
+      tags:
+      - regions
+schemes:
+- http
+swagger: "2.0"
