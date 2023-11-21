@@ -3,11 +3,13 @@ package repository
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"drones/internal/app/ds"
+	"drones/internal/app/role"
 )
 
 type Repository struct {
@@ -47,10 +49,10 @@ func (r *Repository) GetRegionByID(id int) (*ds.Region, error) {
 	return region, nil
 }
 
-func (r *Repository) GetUserByID(id int) (*ds.User, error) {
+func (r *Repository) GetUserByID(id uuid.UUID) (*ds.User, error) {
 	user := &ds.User{}
 
-	err := r.db.First(user, "id = ?", id).Error
+	err := r.db.First(user, "UUID = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -58,15 +60,15 @@ func (r *Repository) GetUserByID(id int) (*ds.User, error) {
 	return user, nil
 }
 
-func (r *Repository) GetUserID(name string) (int, error) {
+func (r *Repository) GetUserID(name string) (uuid.UUID, error) {
 	user := &ds.User{}
 
 	err := r.db.First(user, "name = ?", name).Error
 	if err != nil {
-		return -1, err
+		return uuid.Nil, err
 	}
 
-	return int(user.ID), nil
+	return user.UUID, nil
 }
 
 func (r *Repository) GetRegionID(name string) (int, error) {
@@ -91,12 +93,12 @@ func (r *Repository) GetRegionStatus(name string) (string, error) {
 	return region.Status, nil
 }
 
-func (r *Repository) GetUserRole(name string) (string, error) {
+func (r *Repository) GetUserRole(name string) (role.Role, error) {
 	user := &ds.User{}
 
 	err := r.db.First(user, "name = ?", name).Error
 	if err != nil {
-		return "", err
+		return role.Undefined, err
 	}
 
 	return user.Role, nil
@@ -143,7 +145,7 @@ func (r *Repository) GetAllFlights(requestBody ds.GetFlightsRequestBody) ([]ds.F
 	}
 
 	for i := range flights {
-		if flights[i].ModeratorRefer != 0 {
+		if flights[i].ModeratorRefer != uuid.Nil {
 			moderator, _ := r.GetUserByID(flights[i].ModeratorRefer)
 			flights[i].Moderator = *moderator
 		}
@@ -293,4 +295,12 @@ func (r *Repository) BookRegion(requestBody ds.BookRegionRequestBody) error {
 
 func (r *Repository) ChangeFlightStatus(id int, status string) error {
 	return r.db.Model(&ds.Flight{}).Where("id = ?", id).Update("status", status).Error
+}
+
+func (r *Repository) Register(user *ds.User) error {
+	if user.UUID == uuid.Nil {
+		user.UUID = uuid.New()
+	}
+
+	return r.db.Create(user).Error
 }

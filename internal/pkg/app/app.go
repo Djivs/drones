@@ -12,6 +12,7 @@ import (
 	"drones/internal/app/ds"
 	"drones/internal/app/dsn"
 	"drones/internal/app/repository"
+	"drones/internal/app/role"
 
 	docs "drones/docs"
 
@@ -345,7 +346,7 @@ func (a *Application) flight_mod_status_change(c *gin.Context) {
 		return
 	}
 
-	if user_role != "Модератор" {
+	if user_role != role.Moderator {
 		c.String(http.StatusBadRequest, "у пользователя должна быть роль модератора")
 		return
 	}
