@@ -1,4 +1,10 @@
 basePath: /
+definitions:
+  app.pingResp:
+    properties:
+      status:
+        type: string
+    type: object
 host: 127.0.0.1:8000
 info:
   contact: {}
@@ -14,8 +20,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "302":
+          description: Found
           schema:
             type: string
       summary: Book region
@@ -29,8 +35,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "302":
+          description: Found
           schema:
             type: string
       summary: Get flight
@@ -44,8 +50,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "302":
+          description: Found
           schema:
             type: string
       summary: Deletes flight
@@ -59,8 +65,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             type: string
       summary: Edits flight
@@ -74,8 +80,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             type: string
       summary: Changes flight status as moderator
@@ -89,8 +95,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             type: string
       summary: Changes flights status as user
@@ -104,8 +110,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             type: string
       summary: Deletes flight_to_region connection
@@ -124,6 +130,19 @@ paths:
       summary: Get flights
       tags:
       - flights
+  /ping/{name}:
+    get:
+      description: very very friendly response
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.pingResp'
+      summary: Show hello text
+      tags:
+      - Tests
   /region/:region:
     get:
       description: Returns region with given name
@@ -145,8 +164,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "302":
+          description: Found
           schema:
             type: string
       summary: Adds region to database
@@ -160,8 +179,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "302":
+          description: Found
           schema:
             type: string
       summary: Deletes region
@@ -188,8 +207,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "302":
+          description: Found
           schema:
             type: string
       summary: Edits region
@@ -200,6 +219,12 @@ paths:
       consumes:
       - application/json
       description: Returns all existing regions
+      parameters:
+      - description: Regions name pattern
+        in: query
+        name: name_pattern
+        required: true
+        type: string
       produces:
       - application/json
       responses:

@@ -29,8 +29,8 @@ const docTemplate = `{
                 ],
                 "summary": "Book region",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "302": {
+                        "description": "Found",
                         "schema": {
                             "type": "string"
                         }
@@ -52,8 +52,8 @@ const docTemplate = `{
                 ],
                 "summary": "Get flight",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "302": {
+                        "description": "Found",
                         "schema": {
                             "type": "string"
                         }
@@ -75,8 +75,8 @@ const docTemplate = `{
                 ],
                 "summary": "Deletes flight",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "302": {
+                        "description": "Found",
                         "schema": {
                             "type": "string"
                         }
@@ -98,8 +98,8 @@ const docTemplate = `{
                 ],
                 "summary": "Edits flight",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "type": "string"
                         }
@@ -121,8 +121,8 @@ const docTemplate = `{
                 ],
                 "summary": "Changes flight status as moderator",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "type": "string"
                         }
@@ -144,8 +144,8 @@ const docTemplate = `{
                 ],
                 "summary": "Changes flights status as user",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "type": "string"
                         }
@@ -167,8 +167,8 @@ const docTemplate = `{
                 ],
                 "summary": "Deletes flight_to_region connection",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "type": "string"
                         }
@@ -191,6 +191,26 @@ const docTemplate = `{
                         "description": "Found",
                         "schema": {
                             "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/ping/{name}": {
+            "get": {
+                "description": "very very friendly response",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tests"
+                ],
+                "summary": "Show hello text",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.pingResp"
                         }
                     }
                 }
@@ -230,8 +250,8 @@ const docTemplate = `{
                 ],
                 "summary": "Adds region to database",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "302": {
+                        "description": "Found",
                         "schema": {
                             "type": "string"
                         }
@@ -253,8 +273,8 @@ const docTemplate = `{
                 ],
                 "summary": "Deletes region",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "302": {
+                        "description": "Found",
                         "schema": {
                             "type": "string"
                         }
@@ -296,8 +316,8 @@ const docTemplate = `{
                 ],
                 "summary": "Edits region",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "302": {
+                        "description": "Found",
                         "schema": {
                             "type": "string"
                         }
@@ -318,6 +338,15 @@ const docTemplate = `{
                     "regions"
                 ],
                 "summary": "Get all existing regions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Regions name pattern",
+                        "name": "name_pattern",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -325,6 +354,16 @@ const docTemplate = `{
                             "type": ""
                         }
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "app.pingResp": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
                 }
             }
         }

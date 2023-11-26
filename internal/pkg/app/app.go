@@ -112,12 +112,12 @@ func (a *Application) StartServer() {
 }
 
 // @Summary Get all existing regions
-// @Schemes
 // @Description Returns all existing regions
 // @Tags regions
 // @Accept json
 // @Produce json
 // @Success 200 {} string
+// @Param name_pattern query string true "Regions name pattern"
 // @Router /regions [get]
 func (a *Application) get_regions(c *gin.Context) {
 	var name_pattern = c.Query("name_pattern")
@@ -278,7 +278,6 @@ func (a *Application) book_region(c *gin.Context) {
 // @Summary      Get flights
 // @Description  Returns list of all available flights
 // @Tags         flights
-// @Param status string
 // @Produce      json
 // @Success      302  {object}  string
 // @Router       /flights [get]
@@ -384,7 +383,6 @@ func (a *Application) flight_mod_status_change(c *gin.Context) {
 	c.String(http.StatusCreated, "Flight status was successfully changed")
 }
 
-// Ping godoc
 // @Summary      Changes flights status as user
 // @Description  Changes flight status as allowed to user
 // @Tags         flights
