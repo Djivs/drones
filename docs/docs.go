@@ -186,6 +186,14 @@ const docTemplate = `{
                     "flights"
                 ],
                 "summary": "Get flights",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Flights status",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "302": {
                         "description": "Found",
@@ -211,26 +219,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/app.pingResp"
-                        }
-                    }
-                }
-            }
-        },
-        "/region/:region": {
-            "get": {
-                "description": "Returns region with given name",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "regions"
-                ],
-                "summary": "Get region",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
                         }
                     }
                 }
@@ -325,6 +313,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/region/{region}": {
+            "get": {
+                "description": "Returns region with given name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "regions"
+                ],
+                "summary": "Get region",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Regions name",
+                        "name": "region",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/regions": {
             "get": {
                 "description": "Returns all existing regions",
@@ -343,8 +360,19 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Regions name pattern",
                         "name": "name_pattern",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Regions district",
+                        "name": "district",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Regions status (Действует/Недействителен)",
+                        "name": "status",
+                        "in": "query"
                     }
                 ],
                 "responses": {

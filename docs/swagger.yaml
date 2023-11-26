@@ -120,6 +120,11 @@ paths:
   /flights:
     get:
       description: Returns list of all available flights
+      parameters:
+      - description: Flights status
+        in: query
+        name: status
+        type: string
       produces:
       - application/json
       responses:
@@ -143,9 +148,15 @@ paths:
       summary: Show hello text
       tags:
       - Tests
-  /region/:region:
+  /region/{region}:
     get:
       description: Returns region with given name
+      parameters:
+      - description: Regions name
+        in: path
+        name: region
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -223,7 +234,14 @@ paths:
       - description: Regions name pattern
         in: query
         name: name_pattern
-        required: true
+        type: string
+      - description: Regions district
+        in: query
+        name: district
+        type: string
+      - description: Regions status (Действует/Недействителен)
+        in: query
+        name: status
         type: string
       produces:
       - application/json

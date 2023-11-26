@@ -116,8 +116,10 @@ func (a *Application) StartServer() {
 // @Tags regions
 // @Accept json
 // @Produce json
-// @Success 200 {} string
-// @Param name_pattern query string true "Regions name pattern"
+// @Success 200 {} json
+// @Param name_pattern query string false "Regions name pattern"
+// @Param district query string false "Regions district"
+// @Param status query string false "Regions status (Действует/Недействителен)"
 // @Router /regions [get]
 func (a *Application) get_regions(c *gin.Context) {
 	var name_pattern = c.Query("name_pattern")
@@ -138,6 +140,7 @@ func (a *Application) get_regions(c *gin.Context) {
 // @Tags regions
 // @Accept json
 // @Produce      json
+// @Body json
 // @Success      302  {object}  string
 // @Router       /region/add [put]
 func (a *Application) add_region(c *gin.Context) {
@@ -163,8 +166,9 @@ func (a *Application) add_region(c *gin.Context) {
 // @Description  Returns region with given name
 // @Tags         regions
 // @Produce      json
+// @Param region path string true "Regions name"
 // @Success      200  {object}  string
-// @Router       /region/:region [get]
+// @Router       /region/{region} [get]
 func (a *Application) get_region(c *gin.Context) {
 	var region = ds.Region{}
 	region.Name = c.Param("region")
@@ -176,7 +180,7 @@ func (a *Application) get_region(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusFound, found_region)
+	c.JSON(http.StatusOK, found_region)
 
 }
 
@@ -188,7 +192,7 @@ func (a *Application) get_region(c *gin.Context) {
 // @Success      302  {object}  string
 // @Router       /region/edit [put]
 func (a *Application) edit_region(c *gin.Context) {
-	var region ds.Region
+	var region *ds.Region
 
 	if err := c.BindJSON(&region); err != nil {
 		c.Error(err)
@@ -280,19 +284,18 @@ func (a *Application) book_region(c *gin.Context) {
 // @Tags         flights
 // @Produce      json
 // @Success      302  {object}  string
+// @Param status query string false "Flights status"
 // @Router       /flights [get]
 func (a *Application) get_flights(c *gin.Context) {
-	var requestBody ds.GetFlightsRequestBody
+	status := c.Query("status")
 
-	c.BindJSON(&requestBody)
-
-	flights, err := a.repo.GetAllFlights(requestBody)
+	flights, err := a.repo.GetAllFlights(status)
 	if err != nil {
 		c.Error(err)
 		return
 	}
 
-	c.JSON(http.StatusFound, flights)
+	c.JSON(http.StatusOK, flights)
 }
 
 // a.r.GET("flight", a.get_flight)
@@ -304,7 +307,11 @@ func (a *Application) get_flights(c *gin.Context) {
 // @Success      302  {object}  string
 // @Router       /flight [get]
 func (a *Application) get_flight(c *gin.Context) {
-	var flight ds.Flight
+	status := c.Query("status")
+
+	flight := &ds.Flight{
+		Status: status,
+	}
 
 	if err := c.BindJSON(&flight); err != nil {
 		c.Error(err)
@@ -329,9 +336,9 @@ func (a *Application) get_flight(c *gin.Context) {
 // @Success      201  {object}  string
 // @Router       /flight/edit [put]
 func (a *Application) edit_flight(c *gin.Context) {
-	var flight ds.Flight
+	var flight *ds.Flight
 
-	if err := c.BindJSON(&flight); err != nil {
+	if err := c.BindJSON(flight); err != nil {
 		c.Error(err)
 		return
 	}

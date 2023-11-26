@@ -122,7 +122,6 @@ func (r *Repository) GetAllRegions(name_pattern string, district string, status 
 
 	if name_pattern != "" {
 		tx = tx.Where("name like ?", "%"+name_pattern+"%")
-
 	}
 
 	if district != "" {
@@ -141,12 +140,12 @@ func (r *Repository) GetAllRegions(name_pattern string, district string, status 
 	return regions, nil
 }
 
-func (r *Repository) GetAllFlights(requestBody ds.GetFlightsRequestBody) ([]ds.Flight, error) {
+func (r *Repository) GetAllFlights(status string) ([]ds.Flight, error) {
 	flights := []ds.Flight{}
 
 	var tx *gorm.DB = r.db
-	if requestBody.Status != "" {
-		tx = tx.Where("status = ?", requestBody.Status)
+	if status != "" {
+		tx = tx.Where("status = ?", status)
 	}
 
 	err := tx.Find(&flights).Error
@@ -232,7 +231,7 @@ func (r *Repository) FindRegion(region ds.Region) (ds.Region, error) {
 	}
 }
 
-func (r *Repository) FindFlight(flight ds.Flight) (ds.Flight, error) {
+func (r *Repository) FindFlight(flight *ds.Flight) (ds.Flight, error) {
 	var result ds.Flight
 	err := r.db.Where(&flight).First(&result).Error
 	if err != nil {
@@ -252,11 +251,11 @@ func (r *Repository) FindFlight(flight ds.Flight) (ds.Flight, error) {
 	return result, nil
 }
 
-func (r *Repository) EditRegion(region ds.Region) error {
+func (r *Repository) EditRegion(region *ds.Region) error {
 	return r.db.Model(&ds.Region{}).Where("name = ?", region.Name).Updates(region).Error
 }
 
-func (r *Repository) EditFlight(flight ds.Flight) error {
+func (r *Repository) EditFlight(flight *ds.Flight) error {
 	return r.db.Model(&ds.Flight{}).Where("id = ?", flight.ID).Updates(flight).Error
 }
 

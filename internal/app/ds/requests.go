@@ -5,10 +5,6 @@ type GetRegionsRequestBody struct {
 	Status   string
 }
 
-type GetFlightsRequestBody struct {
-	Status string
-}
-
 type BookRegionRequestBody struct {
 	UserName    string
 	TakeoffDate string
