@@ -10,5 +10,5 @@ type User struct {
 	UUID uuid.UUID `gorm:"type:uuid;unique"`
 	Name string    `json:"name"`
 	Role role.Role `sql:"type:string;"`
-	Pass string
+	Pass string    `json:"pass"`
 }

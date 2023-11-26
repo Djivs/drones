@@ -1,6 +1,8 @@
 package app
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -76,10 +78,13 @@ func (a *Application) StartServer() {
 	a.r.PUT("flight/delete/:flight_id", a.delete_flight)
 	a.r.PUT("flight_to_region/delete", a.delete_flight_to_region)
 
+	// swagger
 	docs.SwaggerInfo.BasePath = "/"
 	a.r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
+	// registration & etc
 	a.r.POST("/login", a.login)
+	a.r.POST("/sign_up", a.register)
 	a.r.GET("/somefunc", a.SomeFunc)
 	a.r.Use(a.WithAuthCheck).GET("/ping", a.Ping)
 
@@ -519,4 +524,51 @@ func createSignedTokenString() (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+type registerReq struct {
+	Name string `json:"name"` // лучше назвать то же самое что login
+	Pass string `json:"pass"`
+}
+
+type registerResp struct {
+	Ok bool `json:"ok"`
+}
+
+func (a *Application) register(c *gin.Context) {
+	req := &registerReq{}
+	err := json.NewDecoder(c.Request.Body).Decode(req)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	if req.Pass == "" {
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("Password should not be empty"))
+		return
+	}
+	if req.Name == "" {
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("Name should not be empty"))
+	}
+
+	err = a.repo.Register(&ds.User{
+		UUID: uuid.New(),
+		Role: role.User,
+		Name: req.Name,
+		Pass: generateHashString(req.Pass),
+	})
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, &registerResp{
+		Ok: true,
+	})
+}
+
+func generateHashString(s string) string {
+	h := sha1.New()
+	h.Write([]byte(s))
+	return hex.EncodeToString(h.Sum(nil))
 }
