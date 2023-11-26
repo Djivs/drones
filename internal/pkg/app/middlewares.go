@@ -2,6 +2,7 @@ package app
 
 import (
 	"drones/internal/app/ds"
+	"drones/internal/app/role"
 	"log"
 	"net/http"
 	"strings"
@@ -12,25 +13,45 @@ import (
 
 const jwtPrefix = "Bearer "
 
-func (a *Application) WithAuthCheck(c *gin.Context) {
-	jwtStr := c.GetHeader("Authorization")
+func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gin.Context) {
+	return func(c *gin.Context) {
+		jwtStr := c.GetHeader("Authorization")
 
-	if !strings.HasPrefix(jwtStr, jwtPrefix) {
-		c.AbortWithStatus(http.StatusForbidden)
+		if !strings.HasPrefix(jwtStr, jwtPrefix) {
+			c.AbortWithStatus(http.StatusForbidden)
 
-		return
-	}
+			return
+		}
 
-	jwtStr = jwtStr[len(jwtPrefix):]
+		jwtStr = jwtStr[len(jwtPrefix):]
 
-	_, err := jwt.ParseWithClaims(jwtStr, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("test"), nil
-	})
-	if err != nil {
-		c.AbortWithStatus(http.StatusForbidden)
-		log.Println(err)
+		token, err := jwt.ParseWithClaims(jwtStr, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+			return []byte("test"), nil
+		})
+		if err != nil {
+			c.AbortWithStatus(http.StatusForbidden)
+			log.Println(err)
 
-		return
+			return
+		}
+
+		myClaims := token.Claims.(*ds.JWTClaims)
+
+		isAssigned := false
+
+		for _, oneOfAssignedRole := range assignedRoles {
+			if myClaims.Role == oneOfAssignedRole {
+				isAssigned = true
+				break
+			}
+		}
+
+		if !isAssigned {
+			c.AbortWithStatus(http.StatusForbidden)
+			log.Printf("role %d is not assigned in %d", myClaims.Role, assignedRoles)
+
+			return
+		}
 	}
 
 }

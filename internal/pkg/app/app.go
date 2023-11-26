@@ -86,7 +86,7 @@ func (a *Application) StartServer() {
 	a.r.POST("/login", a.login)
 	a.r.POST("/sign_up", a.register)
 	a.r.GET("/somefunc", a.SomeFunc)
-	a.r.Use(a.WithAuthCheck).GET("/ping", a.Ping)
+	a.r.Use(a.WithAuthCheck(role.Admin)).GET("/ping", a.Ping)
 
 	a.r.Run(":8000")
 
@@ -458,7 +458,6 @@ func (a *Application) SomeFunc(c *gin.Context) {
 }
 
 func (a *Application) login(c *gin.Context) {
-	log.Println("i am here")
 	req := &loginReq{}
 
 	err := json.NewDecoder(c.Request.Body).Decode(req)
@@ -468,9 +467,17 @@ func (a *Application) login(c *gin.Context) {
 		return
 	}
 
-	log.Println(req)
+	log.Println(req.Login)
 
-	if req.Login == "admin" && req.Password == "admin" {
+	user, err := a.repo.GetUserByLogin(req.Login)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	log.Println(user)
+
+	if req.Login == user.Name && user.Pass == generateHashString(req.Password) {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, &ds.JWTClaims{
 			StandardClaims: jwt.StandardClaims{
 				ExpiresAt: time.Now().Add(3600000000000).Unix(),
@@ -479,6 +486,7 @@ func (a *Application) login(c *gin.Context) {
 			},
 			UserUUID: uuid.New(), // test uuid
 			Scopes:   []string{}, // test data
+			Role:     user.Role,
 		})
 
 		if token == nil {

@@ -60,6 +60,17 @@ func (r *Repository) GetUserByID(id uuid.UUID) (*ds.User, error) {
 	return user, nil
 }
 
+func (r *Repository) GetUserByLogin(login string) (*ds.User, error) {
+	user := &ds.User{}
+
+	err := r.db.First(user, "name = ?", login).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *Repository) GetUserID(name string) (uuid.UUID, error) {
 	user := &ds.User{}
 
