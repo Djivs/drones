@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
@@ -9,17 +10,20 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
+	"drones/docs"
+	"drones/internal/app/config"
 	"drones/internal/app/ds"
 	"drones/internal/app/dsn"
+	"drones/internal/app/redis"
 	"drones/internal/app/repository"
 	"drones/internal/app/role"
 
-	docs "drones/docs"
-
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
+
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
@@ -29,8 +33,10 @@ import (
 // @BasePath /
 
 type Application struct {
-	repo repository.Repository
-	r    *gin.Engine
+	repo   *repository.Repository
+	r      *gin.Engine
+	config *config.Config
+	redis  *redis.Client
 }
 
 type loginReq struct {
@@ -44,15 +50,27 @@ type loginResp struct {
 	TokenType   string `json:"token_type"`
 }
 
-func New() Application {
-	app := Application{}
+func New(ctx context.Context) (*Application, error) {
+	cfg, err := config.NewConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	repo, _ := repository.New(dsn.FromEnv())
+	repo, err := repository.New(dsn.FromEnv())
+	if err != nil {
+		return nil, err
+	}
 
-	app.repo = *repo
+	redisClient, err := redis.New(ctx, cfg.Redis)
+	if err != nil {
+		return nil, err
+	}
 
-	return app
-
+	return &Application{
+		config: cfg,
+		repo:   repo,
+		redis:  redisClient,
+	}, nil
 }
 
 func (a *Application) StartServer() {
@@ -85,7 +103,7 @@ func (a *Application) StartServer() {
 	// registration & etc
 	a.r.POST("/login", a.login)
 	a.r.POST("/sign_up", a.register)
-	a.r.GET("/somefunc", a.SomeFunc)
+	a.r.POST("/logout", a.logout)
 	a.r.Use(a.WithAuthCheck(role.Admin)).GET("/ping", a.Ping)
 
 	a.r.Run(":8000")
@@ -579,4 +597,34 @@ func generateHashString(s string) string {
 	h := sha1.New()
 	h.Write([]byte(s))
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+func (a *Application) logout(c *gin.Context) {
+	jwtStr := c.GetHeader("Authorization")
+	if !strings.HasPrefix(jwtStr, jwtPrefix) {
+		c.AbortWithStatus(http.StatusBadRequest)
+
+		return
+	}
+
+	jwtStr = jwtStr[len(jwtPrefix):]
+
+	_, err := jwt.ParseWithClaims(jwtStr, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte("test"), nil
+	})
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		log.Println(err)
+
+		return
+	}
+
+	err = a.redis.WriteJWTToBlackList(c.Request.Context(), jwtStr, 3600000000000)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+
+		return
+	}
+
+	c.Status(http.StatusOK)
 }

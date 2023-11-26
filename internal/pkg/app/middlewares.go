@@ -3,11 +3,13 @@ package app
 import (
 	"drones/internal/app/ds"
 	"drones/internal/app/role"
+	"errors"
 	"log"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt"
 )
 
@@ -24,6 +26,18 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 		}
 
 		jwtStr = jwtStr[len(jwtPrefix):]
+
+		err := a.redis.CheckJWTInBlackList(c.Request.Context(), jwtStr)
+		if err == nil { // значит что токен в блеклисте
+			c.AbortWithStatus(http.StatusForbidden)
+
+			return
+		}
+		if !errors.Is(err, redis.Nil) { // значит что это не ошибка отсуствия - внутренняя ошибка
+			c.AbortWithError(http.StatusInternalServerError, err)
+
+			return
+		}
 
 		token, err := jwt.ParseWithClaims(jwtStr, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte("test"), nil
