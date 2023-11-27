@@ -28,6 +28,6 @@ func MigrateSchema(db *gorm.DB) {
 	err = db.AutoMigrate(&ds.FlightToRegion{})
 
 	if err != nil {
-		panic("cant migrate db")
+		panic(err)
 	}
 }

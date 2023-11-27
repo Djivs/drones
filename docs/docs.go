@@ -28,6 +28,17 @@ const docTemplate = `{
                     "general"
                 ],
                 "summary": "Book region",
+                "parameters": [
+                    {
+                        "description": "Booking request parameters",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.BookRegionRequestBody"
+                        }
+                    }
+                ],
                 "responses": {
                     "302": {
                         "description": "Found",
@@ -51,6 +62,14 @@ const docTemplate = `{
                     "flights"
                 ],
                 "summary": "Get flight",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Flights status",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "302": {
                         "description": "Found",
@@ -61,7 +80,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/flight/delete/:flight_id": {
+        "/flight/delete/{flight_id}": {
             "put": {
                 "description": "Changes flight status to \"Удалён\"",
                 "consumes": [
@@ -74,6 +93,15 @@ const docTemplate = `{
                     "flights"
                 ],
                 "summary": "Deletes flight",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Flight id",
+                        "name": "flight_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "302": {
                         "description": "Found",
@@ -97,6 +125,16 @@ const docTemplate = `{
                     "flights"
                 ],
                 "summary": "Edits flight",
+                "parameters": [
+                    {
+                        "description": "Flight",
+                        "name": "flight",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/ds.Flight"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -120,6 +158,17 @@ const docTemplate = `{
                     "flights"
                 ],
                 "summary": "Changes flight status as moderator",
+                "parameters": [
+                    {
+                        "description": "Request body",
+                        "name": "request_body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.ChangeFlightStatusRequestBody"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -143,6 +192,17 @@ const docTemplate = `{
                     "flights"
                 ],
                 "summary": "Changes flights status as user",
+                "parameters": [
+                    {
+                        "description": "Request body",
+                        "name": "request_body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.ChangeFlightStatusRequestBody"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -166,6 +226,17 @@ const docTemplate = `{
                     "flights"
                 ],
                 "summary": "Deletes flight_to_region connection",
+                "parameters": [
+                    {
+                        "description": "Request body",
+                        "name": "request_body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.DeleteFlightToRegionRequestBody"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -204,6 +275,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/login": {
+            "post": {
+                "description": "Returns your token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login into system",
+                "parameters": [
+                    {
+                        "description": "Login request body",
+                        "name": "request_body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/app.loginReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.loginResp"
+                        }
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logout",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/ping/{name}": {
             "get": {
                 "description": "very very friendly response",
@@ -237,9 +361,20 @@ const docTemplate = `{
                     "regions"
                 ],
                 "summary": "Adds region to database",
+                "parameters": [
+                    {
+                        "description": "New region's details",
+                        "name": "region",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.Region"
+                        }
+                    }
+                ],
                 "responses": {
-                    "302": {
-                        "description": "Found",
+                    "201": {
+                        "description": "Region created successfully",
                         "schema": {
                             "type": "string"
                         }
@@ -247,7 +382,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/region/delete/:region_name": {
+        "/region/delete/{region_name}": {
             "put": {
                 "description": "Finds region by name and changes its status to \"Недоступен\"",
                 "consumes": [
@@ -260,6 +395,15 @@ const docTemplate = `{
                     "regions"
                 ],
                 "summary": "Deletes region",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Regions name",
+                        "name": "region_name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "302": {
                         "description": "Found",
@@ -270,7 +414,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/region/delete_restore/:region_name": {
+        "/region/delete_restore/{region_name}": {
             "get": {
                 "description": "Switches region status from \"Действует\" to \"Недоступен\" and back",
                 "produces": [
@@ -280,6 +424,15 @@ const docTemplate = `{
                     "regions"
                 ],
                 "summary": "Deletes or restores region",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Regions name",
+                        "name": "region_name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -303,6 +456,17 @@ const docTemplate = `{
                     "regions"
                 ],
                 "summary": "Edits region",
+                "parameters": [
+                    {
+                        "description": "Edited regioons data (must contain regions name or id)",
+                        "name": "region",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.Region"
+                        }
+                    }
+                ],
                 "responses": {
                     "302": {
                         "description": "Found",
@@ -384,12 +548,177 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/register": {
+            "post": {
+                "description": "adds a new user to the database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "register a new user",
+                "parameters": [
+                    {
+                        "description": "Request body",
+                        "name": "request_body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/app.registerReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.registerResp"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "app.loginReq": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "app.loginResp": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expires_in": {
+                    "type": "integer"
+                },
+                "token_type": {
+                    "type": "string"
+                }
+            }
+        },
         "app.pingResp": {
             "type": "object",
             "properties": {
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "app.registerReq": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "лучше назвать то же самое что login",
+                    "type": "string"
+                },
+                "pass": {
+                    "type": "string"
+                }
+            }
+        },
+        "app.registerResp": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "ds.BookRegionRequestBody": {
+            "type": "object",
+            "properties": {
+                "arrivalDate": {
+                    "type": "string"
+                },
+                "regionName": {
+                    "type": "string"
+                },
+                "takeoffDate": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "ds.ChangeFlightStatusRequestBody": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "ds.DeleteFlightToRegionRequestBody": {
+            "type": "object",
+            "properties": {
+                "flightID": {
+                    "type": "integer"
+                },
+                "regionID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ds.Flight": {
+            "type": "object"
+        },
+        "ds.Region": {
+            "type": "object",
+            "properties": {
+                "areaKm": {
+                    "type": "number"
+                },
+                "averageHeightM": {
+                    "type": "number"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "district": {
+                    "type": "string"
+                },
+                "headEmail": {
+                    "type": "string"
+                },
+                "headName": {
+                    "type": "string"
+                },
+                "headPhone": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "population": {
+                    "type": "integer"
+                },
                 "status": {
                     "type": "string"
                 }

@@ -140,13 +140,13 @@ func (a *Application) get_regions(c *gin.Context) {
 // @Tags regions
 // @Accept json
 // @Produce      json
-// @Body json
-// @Success      302  {object}  string
+// @Param region body ds.Region true "New region's details"
+// @Success      201  {object}  string "Region created successfully"
 // @Router       /region/add [put]
 func (a *Application) add_region(c *gin.Context) {
 	var region ds.Region
 
-	if err := c.BindJSON(&region); err != nil {
+	if err := c.BindJSON(&region); (err != nil || region.Name == "" || region.Status == "") {
 		c.String(http.StatusBadRequest, "Can't parse region\n"+err.Error())
 		return
 	}
@@ -190,6 +190,7 @@ func (a *Application) get_region(c *gin.Context) {
 // @Accept json
 // @Produce      json
 // @Success      302  {object}  string
+// @Param region body ds.Region true "Edited regioons data (must contain regions name or id)"
 // @Router       /region/edit [put]
 func (a *Application) edit_region(c *gin.Context) {
 	var region *ds.Region
@@ -216,9 +217,16 @@ func (a *Application) edit_region(c *gin.Context) {
 // @Accept json
 // @Produce      json
 // @Success      302  {object}  string
-// @Router       /region/delete/:region_name [put]
+// @Param region_name path string true "Regions name"
+// @Router       /region/delete/{region_name} [put]
 func (a *Application) delete_region(c *gin.Context) {
 	region_name := c.Param("region_name")
+
+	if (region_name == "") {
+		c.String(http.StatusBadRequest, "You must specify region name")
+
+		return
+	}
 
 	log.Println(region_name)
 
@@ -237,9 +245,14 @@ func (a *Application) delete_region(c *gin.Context) {
 // @Tags         regions
 // @Produce      json
 // @Success      200  {object}  string
-// @Router       /region/delete_restore/:region_name [get]
+// @Param region_name path string true "Regions name"
+// @Router       /region/delete_restore/{region_name} [get]
 func (a *Application) delete_restore_region(c *gin.Context) {
 	region_name := c.Param("region_name")
+
+	if (region_name == "") {
+		c.String(http.StatusBadRequest, "You must specify region name")
+	}
 
 	err := a.repo.DeleteRestoreRegion(region_name)
 
@@ -257,6 +270,7 @@ func (a *Application) delete_restore_region(c *gin.Context) {
 // @Accept json
 // @Produce      json
 // @Success      302  {object}  string
+// @Param Body body ds.BookRegionRequestBody true "Booking request parameters"
 // @Router       /book [put]
 func (a *Application) book_region(c *gin.Context) {
 	var request_body ds.BookRegionRequestBody
@@ -298,13 +312,13 @@ func (a *Application) get_flights(c *gin.Context) {
 	c.JSON(http.StatusOK, flights)
 }
 
-// a.r.GET("flight", a.get_flight)
 // @Summary      Get flight
 // @Description  Returns flight with given parameters
 // @Tags         flights
 // @Accept		 json
 // @Produce      json
 // @Success      302  {object}  string
+// @Param status query string false "Flights status"
 // @Router       /flight [get]
 func (a *Application) get_flight(c *gin.Context) {
 	status := c.Query("status")
@@ -334,6 +348,7 @@ func (a *Application) get_flight(c *gin.Context) {
 // @Accept json
 // @Produce      json
 // @Success      201  {object}  string
+// @Param flight body ds.Flight false "Flight"
 // @Router       /flight/edit [put]
 func (a *Application) edit_flight(c *gin.Context) {
 	var flight *ds.Flight
@@ -359,6 +374,7 @@ func (a *Application) edit_flight(c *gin.Context) {
 // @Accept json
 // @Produce      json
 // @Success      201  {object}  string
+// @Param request_body body ds.ChangeFlightStatusRequestBody true "Request body"
 // @Router       /flight/status_change/moderator [put]
 func (a *Application) flight_mod_status_change(c *gin.Context) {
 	var requestBody ds.ChangeFlightStatusRequestBody
@@ -396,6 +412,7 @@ func (a *Application) flight_mod_status_change(c *gin.Context) {
 // @Accept json
 // @Produce      json
 // @Success      201  {object}  string
+// @Param request_body body ds.ChangeFlightStatusRequestBody true "Request body"
 // @Router       /flight/status_change/user [put]
 func (a *Application) flight_user_status_change(c *gin.Context) {
 	var requestBody ds.ChangeFlightStatusRequestBody
@@ -421,7 +438,8 @@ func (a *Application) flight_user_status_change(c *gin.Context) {
 // @Accept json
 // @Produce      json
 // @Success      302  {object}  string
-// @Router       /flight/delete/:flight_id [put]
+// @Param flight_id path int true "Flight id"
+// @Router       /flight/delete/{flight_id} [put]
 func (a *Application) delete_flight(c *gin.Context) {
 	flight_id, _ := strconv.Atoi(c.Param("flight_id"))
 
@@ -441,6 +459,7 @@ func (a *Application) delete_flight(c *gin.Context) {
 // @Accept json
 // @Produce      json
 // @Success      201  {object}  string
+// @Param request_body body ds.DeleteFlightToRegionRequestBody true "Request body"
 // @Router       /flight_to_region/delete [put]
 func (a *Application) delete_flight_to_region(c *gin.Context) {
 	var requestBody ds.DeleteFlightToRegionRequestBody
@@ -476,10 +495,14 @@ func (a *Application) Ping(gCtx *gin.Context) {
 	gCtx.String(http.StatusOK, "Hello %s", name)
 }
 
-func (a *Application) SomeFunc(c *gin.Context) {
-	c.String(http.StatusCreated, "Nothing happend here!")
-}
-
+// @Summary Login into system
+// @Description Returns your token
+// @Tags auth
+// @Produce json
+// @Accept json
+// @Success 200 {object} loginResp
+// @Param request_body body loginReq true "Login request body"
+// @Router /login [post]
 func (a *Application) login(c *gin.Context) {
 	req := &loginReq{}
 
@@ -566,6 +589,14 @@ type registerResp struct {
 	Ok bool `json:"ok"`
 }
 
+// @Summary register a new user
+// @Description adds a new user to the database
+// @Tags auth
+// @Produce json
+// @Accept json
+// @Success 200 {object} registerResp
+// @Param request_body body registerReq true "Request body"
+// @Router /register [post]
 func (a *Application) register(c *gin.Context) {
 	req := &registerReq{}
 	err := json.NewDecoder(c.Request.Body).Decode(req)
@@ -604,6 +635,13 @@ func generateHashString(s string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
+// @Summary Logout
+// @Details Deactivates user's current token
+// @Tags auth
+// @Produce json
+// @Accept json
+// @Success 200
+// @Router /logout [post]
 func (a *Application) logout(c *gin.Context) {
 	jwtStr := c.GetHeader("Authorization")
 	if !strings.HasPrefix(jwtStr, jwtPrefix) {

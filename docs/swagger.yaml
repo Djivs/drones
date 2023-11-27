@@ -1,7 +1,92 @@
 basePath: /
 definitions:
+  app.loginReq:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  app.loginResp:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      token_type:
+        type: string
+    type: object
   app.pingResp:
     properties:
+      status:
+        type: string
+    type: object
+  app.registerReq:
+    properties:
+      name:
+        description: лучше назвать то же самое что login
+        type: string
+      pass:
+        type: string
+    type: object
+  app.registerResp:
+    properties:
+      ok:
+        type: boolean
+    type: object
+  ds.BookRegionRequestBody:
+    properties:
+      arrivalDate:
+        type: string
+      regionName:
+        type: string
+      takeoffDate:
+        type: string
+      userName:
+        type: string
+    type: object
+  ds.ChangeFlightStatusRequestBody:
+    properties:
+      id:
+        type: integer
+      status:
+        type: string
+      userName:
+        type: string
+    type: object
+  ds.DeleteFlightToRegionRequestBody:
+    properties:
+      flightID:
+        type: integer
+      regionID:
+        type: integer
+    type: object
+  ds.Flight:
+    type: object
+  ds.Region:
+    properties:
+      areaKm:
+        type: number
+      averageHeightM:
+        type: number
+      details:
+        type: string
+      district:
+        type: string
+      headEmail:
+        type: string
+      headName:
+        type: string
+      headPhone:
+        type: string
+      id:
+        type: integer
+      image:
+        type: string
+      name:
+        type: string
+      population:
+        type: integer
       status:
         type: string
     type: object
@@ -17,6 +102,13 @@ paths:
       consumes:
       - application/json
       description: Creates a new flight and adds current region in it
+      parameters:
+      - description: Booking request parameters
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/ds.BookRegionRequestBody'
       produces:
       - application/json
       responses:
@@ -32,6 +124,11 @@ paths:
       consumes:
       - application/json
       description: Returns flight with given parameters
+      parameters:
+      - description: Flights status
+        in: query
+        name: status
+        type: string
       produces:
       - application/json
       responses:
@@ -42,11 +139,17 @@ paths:
       summary: Get flight
       tags:
       - flights
-  /flight/delete/:flight_id:
+  /flight/delete/{flight_id}:
     put:
       consumes:
       - application/json
       description: Changes flight status to "Удалён"
+      parameters:
+      - description: Flight id
+        in: path
+        name: flight_id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -62,6 +165,12 @@ paths:
       consumes:
       - application/json
       description: Finds flight and updates it fields
+      parameters:
+      - description: Flight
+        in: body
+        name: flight
+        schema:
+          $ref: '#/definitions/ds.Flight'
       produces:
       - application/json
       responses:
@@ -77,6 +186,13 @@ paths:
       consumes:
       - application/json
       description: Changes flight status to any available status
+      parameters:
+      - description: Request body
+        in: body
+        name: request_body
+        required: true
+        schema:
+          $ref: '#/definitions/ds.ChangeFlightStatusRequestBody'
       produces:
       - application/json
       responses:
@@ -92,6 +208,13 @@ paths:
       consumes:
       - application/json
       description: Changes flight status as allowed to user
+      parameters:
+      - description: Request body
+        in: body
+        name: request_body
+        required: true
+        schema:
+          $ref: '#/definitions/ds.ChangeFlightStatusRequestBody'
       produces:
       - application/json
       responses:
@@ -107,6 +230,13 @@ paths:
       consumes:
       - application/json
       description: Deletes region from flight
+      parameters:
+      - description: Request body
+        in: body
+        name: request_body
+        required: true
+        schema:
+          $ref: '#/definitions/ds.DeleteFlightToRegionRequestBody'
       produces:
       - application/json
       responses:
@@ -135,6 +265,40 @@ paths:
       summary: Get flights
       tags:
       - flights
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Returns your token
+      parameters:
+      - description: Login request body
+        in: body
+        name: request_body
+        required: true
+        schema:
+          $ref: '#/definitions/app.loginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.loginResp'
+      summary: Login into system
+      tags:
+      - auth
+  /logout:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Logout
+      tags:
+      - auth
   /ping/{name}:
     get:
       description: very very friendly response
@@ -172,21 +336,34 @@ paths:
       consumes:
       - application/json
       description: Creates a new reigon with parameters, specified in json
+      parameters:
+      - description: New region's details
+        in: body
+        name: region
+        required: true
+        schema:
+          $ref: '#/definitions/ds.Region'
       produces:
       - application/json
       responses:
-        "302":
-          description: Found
+        "201":
+          description: Region created successfully
           schema:
             type: string
       summary: Adds region to database
       tags:
       - regions
-  /region/delete/:region_name:
+  /region/delete/{region_name}:
     put:
       consumes:
       - application/json
       description: Finds region by name and changes its status to "Недоступен"
+      parameters:
+      - description: Regions name
+        in: path
+        name: region_name
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -197,9 +374,15 @@ paths:
       summary: Deletes region
       tags:
       - regions
-  /region/delete_restore/:region_name:
+  /region/delete_restore/{region_name}:
     get:
       description: Switches region status from "Действует" to "Недоступен" and back
+      parameters:
+      - description: Regions name
+        in: path
+        name: region_name
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -215,6 +398,13 @@ paths:
       consumes:
       - application/json
       description: Finds region by name and updates its fields
+      parameters:
+      - description: Edited regioons data (must contain regions name or id)
+        in: body
+        name: region
+        required: true
+        schema:
+          $ref: '#/definitions/ds.Region'
       produces:
       - application/json
       responses:
@@ -253,6 +443,28 @@ paths:
       summary: Get all existing regions
       tags:
       - regions
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: adds a new user to the database
+      parameters:
+      - description: Request body
+        in: body
+        name: request_body
+        required: true
+        schema:
+          $ref: '#/definitions/app.registerReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.registerResp'
+      summary: register a new user
+      tags:
+      - auth
 schemes:
 - http
 swagger: "2.0"
