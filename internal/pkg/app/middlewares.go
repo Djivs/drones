@@ -24,8 +24,6 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 			jwtStr, cookieErr = c.Cookie("drones-api-token")
 			if cookieErr != nil {
 				c.AbortWithStatus(http.StatusBadRequest)
-			} else {
-				log.Println(jwtStr)
 			}
 		}
 

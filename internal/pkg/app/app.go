@@ -80,20 +80,6 @@ func (a *Application) StartServer() {
 	a.r.GET("regions", a.get_regions)
 	a.r.GET("region/:region", a.get_region)
 
-	a.r.GET("flight", a.get_flight)
-
-	a.r.PUT("book", a.book_region)
-
-	a.r.PUT("region/edit", a.edit_region)
-	a.r.PUT("flight/edit", a.edit_flight)
-	a.r.PUT("flight/status_change/moderator", a.flight_mod_status_change)
-	a.r.PUT("flight/status_change/user", a.flight_user_status_change)
-
-	a.r.PUT("region/delete/:region_name", a.delete_region)
-	a.r.PUT("region/delete_restore/:region_name", a.delete_restore_region)
-	a.r.PUT("flight/delete/:flight_id", a.delete_flight)
-	a.r.PUT("flight_to_region/delete", a.delete_flight_to_region)
-
 	// swagger
 	docs.SwaggerInfo.BasePath = "/"
 	a.r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
@@ -102,7 +88,18 @@ func (a *Application) StartServer() {
 	a.r.POST("/login", a.login)
 	a.r.POST("/register", a.register)
 	a.r.POST("/logout", a.logout)
+
+	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).GET("flight", a.get_flight)
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).GET("flights", a.get_flights)
+	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).PUT("book", a.book_region)
+	a.r.Use(a.WithAuthCheck(role.Admin, role.Moderator, role.User)).PUT("flight/status_change", a.flight_status_change)
+
+	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
+	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("flight/delete/:flight_id", a.delete_flight)
+	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("flight_to_region/delete", a.delete_flight_to_region)
+	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("flight/edit", a.edit_flight)
+	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete/:region_name", a.delete_region)
+	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/edit", a.edit_region)
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/add", a.add_region)
 	a.r.Use(a.WithAuthCheck(role.Admin)).GET("/ping", a.Ping)
 
@@ -228,8 +225,6 @@ func (a *Application) delete_region(c *gin.Context) {
 		return
 	}
 
-	log.Println(region_name)
-
 	err := a.repo.LogicalDeleteRegion(region_name)
 
 	if err != nil {
@@ -276,12 +271,21 @@ func (a *Application) book_region(c *gin.Context) {
 	var request_body ds.BookRegionRequestBody
 
 	if err := c.BindJSON(&request_body); err != nil {
-		c.Error(err)
 		c.String(http.StatusBadGateway, "Cant' parse json")
 		return
 	}
 
-	err := a.repo.BookRegion(request_body)
+	_userUUID, ok := c.Get("userUUID")
+
+	if !ok {
+		c.String(http.StatusInternalServerError, "You should login first")
+
+		return
+	}
+
+	userUUID := _userUUID.(uuid.UUID)
+
+	err := a.repo.BookRegion(request_body, userUUID)
 
 	if err != nil {
 		c.Error(err)
@@ -374,15 +378,15 @@ func (a *Application) edit_flight(c *gin.Context) {
 	c.String(http.StatusCreated, "Flight was successfuly edited")
 }
 
-// @Summary      Changes flight status as moderator
-// @Description  Changes flight status to any available status
-// @Tags         flights
+// @Summary Edit flight status
+// @Description Получает id заявки и новый статус и производит необходимые обновления
+// @Tags flights
 // @Accept json
-// @Produce      json
-// @Success      201  {object}  string
+// @Produce json
+// @Success 201 {object} string
 // @Param request_body body ds.ChangeFlightStatusRequestBody true "Request body"
-// @Router       /flight/status_change/moderator [put]
-func (a *Application) flight_mod_status_change(c *gin.Context) {
+// @Router /flight/status_change [put]
+func (a *Application) flight_status_change(c *gin.Context) {
 	var requestBody ds.ChangeFlightStatusRequestBody
 
 	if err := c.BindJSON(&requestBody); err != nil {
@@ -390,52 +394,39 @@ func (a *Application) flight_mod_status_change(c *gin.Context) {
 		return
 	}
 
-	user_role, err := a.repo.GetUserRole(requestBody.UserName)
+	_userUUID, _ := c.Get("userUUID")
+	_userRole, _ := c.Get("role")
 
-	if err != nil {
-		c.Error(err)
-		return
+	userUUID := _userUUID.(uuid.UUID)
+	userRole := _userRole.(role.Role)
+
+	if userRole == role.User && requestBody.Status == "Удалён" {
+		status, err := a.repo.GetFlightStatus(requestBody.ID)
+		if err == nil {
+			c.Error(err)
+			return
+		}
+
+		if status == "Черновик" || status == "Сформирован" {
+			err := a.repo.ChangeFlightStatusUser(requestBody.ID, requestBody.Status, userUUID)
+
+			if err != nil {
+				c.Error(err)
+				return
+			} else {
+				c.String(http.StatusCreated, "Flight status was successfully changed")
+			}
+		}
+	} else {
+		err := a.repo.ChangeFlightStatus(requestBody.ID, requestBody.Status)
+
+		if err != nil {
+			c.Error(err)
+			return
+		}
+
+		c.String(http.StatusCreated, "Flight status was successfully changed")
 	}
-
-	if user_role != role.Moderator {
-		c.String(http.StatusBadRequest, "у пользователя должна быть роль модератора")
-		return
-	}
-
-	err = a.repo.ChangeFlightStatus(requestBody.ID, requestBody.Status)
-
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	c.String(http.StatusCreated, "Flight status was successfully changed")
-}
-
-// @Summary      Changes flights status as user
-// @Description  Changes flight status as allowed to user
-// @Tags         flights
-// @Accept json
-// @Produce      json
-// @Success      201  {object}  string
-// @Param request_body body ds.ChangeFlightStatusRequestBody true "Request body"
-// @Router       /flight/status_change/user [put]
-func (a *Application) flight_user_status_change(c *gin.Context) {
-	var requestBody ds.ChangeFlightStatusRequestBody
-
-	if err := c.BindJSON(&requestBody); err != nil {
-		c.Error(err)
-		return
-	}
-
-	err := a.repo.ChangeFlightStatus(requestBody.ID, requestBody.Status)
-
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	c.String(http.StatusCreated, "Flight status was successfully changed")
 }
 
 // @Summary      Deletes flight

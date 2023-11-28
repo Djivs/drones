@@ -263,15 +263,8 @@ func (r *Repository) EditFlight(flight *ds.Flight) error {
 	return r.db.Model(&ds.Flight{}).Where("id = ?", flight.ID).Updates(flight).Error
 }
 
-func (r *Repository) BookRegion(requestBody ds.BookRegionRequestBody) error {
-	user_id, err := r.GetUserID(requestBody.UserName)
-
-	if err != nil {
-		return err
-	}
-
-	var region_id int
-	region_id, err = r.GetRegionID(requestBody.RegionName)
+func (r *Repository) BookRegion(requestBody ds.BookRegionRequestBody, userUUID uuid.UUID) error {
+	region_id, err := r.GetRegionID(requestBody.RegionName)
 	if err != nil {
 		return err
 	}
@@ -289,7 +282,7 @@ func (r *Repository) BookRegion(requestBody ds.BookRegionRequestBody) error {
 	flight := ds.Flight{}
 	flight.TakeoffDate = datatypes.Date(takeoff_date)
 	flight.ArrivalDate = datatypes.Date(arrival_date)
-	flight.UserRefer = user_id
+	flight.UserRefer = userUUID
 	flight.DateCreated = current_date
 
 	err = r.db.Omit("moderator_refer", "date_processed", "date_finished").Create(&flight).Error
@@ -305,6 +298,20 @@ func (r *Repository) BookRegion(requestBody ds.BookRegionRequestBody) error {
 
 	return err
 
+}
+
+func (r *Repository) GetFlightStatus(id int) (string, error) {
+	var result ds.Flight
+	err := r.db.Where("id = ?", id).First(&result).Error
+	if err != nil {
+		return "", err
+	}
+
+	return result.Status, nil
+}
+
+func (r *Repository) ChangeFlightStatusUser(id int, status string, userUUID uuid.UUID) error {
+	return r.db.Model(&ds.Flight{}).Where("id = ?", id).Where("user_refer = ?", userUUID).Update("status", status).Error
 }
 
 func (r *Repository) ChangeFlightStatus(id int, status string) error {

@@ -42,16 +42,12 @@ definitions:
         type: string
       takeoffDate:
         type: string
-      userName:
-        type: string
     type: object
   ds.ChangeFlightStatusRequestBody:
     properties:
       id:
         type: integer
       status:
-        type: string
-      userName:
         type: string
     type: object
   ds.DeleteFlightToRegionRequestBody:
@@ -181,11 +177,11 @@ paths:
       summary: Edits flight
       tags:
       - flights
-  /flight/status_change/moderator:
+  /flight/status_change:
     put:
       consumes:
       - application/json
-      description: Changes flight status to any available status
+      description: Получает id заявки и новый статус и производит необходимые обновления
       parameters:
       - description: Request body
         in: body
@@ -200,29 +196,7 @@ paths:
           description: Created
           schema:
             type: string
-      summary: Changes flight status as moderator
-      tags:
-      - flights
-  /flight/status_change/user:
-    put:
-      consumes:
-      - application/json
-      description: Changes flight status as allowed to user
-      parameters:
-      - description: Request body
-        in: body
-        name: request_body
-        required: true
-        schema:
-          $ref: '#/definitions/ds.ChangeFlightStatusRequestBody'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            type: string
-      summary: Changes flights status as user
+      summary: Edit flight status
       tags:
       - flights
   /flight_to_region/delete:
@@ -343,12 +317,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/ds.Region'
-      - default: c.GetCookie("drones-api-token"
-        description: Token for authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
       produces:
       - application/json
       responses:

@@ -6,16 +6,14 @@ type GetRegionsRequestBody struct {
 }
 
 type BookRegionRequestBody struct {
-	UserName    string
 	TakeoffDate string
 	ArrivalDate string
 	RegionName  string
 }
 
 type ChangeFlightStatusRequestBody struct {
-	ID       int
-	Status   string
-	UserName string
+	ID     int
+	Status string
 }
 
 type DeleteFlightToRegionRequestBody struct {

@@ -145,9 +145,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/flight/status_change/moderator": {
+        "/flight/status_change": {
             "put": {
-                "description": "Changes flight status to any available status",
+                "description": "Получает id заявки и новый статус и производит необходимые обновления",
                 "consumes": [
                     "application/json"
                 ],
@@ -157,41 +157,7 @@ const docTemplate = `{
                 "tags": [
                     "flights"
                 ],
-                "summary": "Changes flight status as moderator",
-                "parameters": [
-                    {
-                        "description": "Request body",
-                        "name": "request_body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ds.ChangeFlightStatusRequestBody"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/flight/status_change/user": {
-            "put": {
-                "description": "Changes flight status as allowed to user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "flights"
-                ],
-                "summary": "Changes flights status as user",
+                "summary": "Edit flight status",
                 "parameters": [
                     {
                         "description": "Request body",
@@ -370,14 +336,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/ds.Region"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "default": "c.GetCookie(\"drones-api-token\"",
-                        "description": "Token for authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -657,9 +615,6 @@ const docTemplate = `{
                 },
                 "takeoffDate": {
                     "type": "string"
-                },
-                "userName": {
-                    "type": "string"
                 }
             }
         },
@@ -670,9 +625,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "status": {
-                    "type": "string"
-                },
-                "userName": {
                     "type": "string"
                 }
             }
