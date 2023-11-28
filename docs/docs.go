@@ -370,6 +370,14 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/ds.Region"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "default": "c.GetCookie(\"drones-api-token\"",
+                        "description": "Token for authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {

@@ -19,6 +19,16 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 	return func(c *gin.Context) {
 		jwtStr := c.GetHeader("Authorization")
 
+		if jwtStr == "" {
+			var cookieErr error
+			jwtStr, cookieErr = c.Cookie("drones-api-token")
+			if cookieErr != nil {
+				c.AbortWithStatus(http.StatusBadRequest)
+			} else {
+				log.Println(jwtStr)
+			}
+		}
+
 		if !strings.HasPrefix(jwtStr, jwtPrefix) {
 			c.AbortWithStatus(http.StatusForbidden)
 

@@ -85,7 +85,6 @@ func (a *Application) StartServer() {
 
 	a.r.PUT("book", a.book_region)
 
-	a.r.PUT("region/add", a.add_region)
 	a.r.PUT("region/edit", a.edit_region)
 	a.r.PUT("flight/edit", a.edit_flight)
 	a.r.PUT("flight/status_change/moderator", a.flight_mod_status_change)
@@ -102,9 +101,10 @@ func (a *Application) StartServer() {
 
 	// registration & etc
 	a.r.POST("/login", a.login)
-	a.r.POST("/sign_up", a.register)
+	a.r.POST("/register", a.register)
 	a.r.POST("/logout", a.logout)
 	a.r.Use(a.WithAuthCheck(role.Admin)).GET("/ping", a.Ping)
+	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/add", a.add_region)
 
 	a.r.Run(":8000")
 
@@ -146,7 +146,7 @@ func (a *Application) get_regions(c *gin.Context) {
 func (a *Application) add_region(c *gin.Context) {
 	var region ds.Region
 
-	if err := c.BindJSON(&region); (err != nil || region.Name == "" || region.Status == "") {
+	if err := c.BindJSON(&region); err != nil || region.Name == "" || region.Status == "" {
 		c.String(http.StatusBadRequest, "Can't parse region\n"+err.Error())
 		return
 	}
@@ -222,7 +222,7 @@ func (a *Application) edit_region(c *gin.Context) {
 func (a *Application) delete_region(c *gin.Context) {
 	region_name := c.Param("region_name")
 
-	if (region_name == "") {
+	if region_name == "" {
 		c.String(http.StatusBadRequest, "You must specify region name")
 
 		return
@@ -250,7 +250,7 @@ func (a *Application) delete_region(c *gin.Context) {
 func (a *Application) delete_restore_region(c *gin.Context) {
 	region_name := c.Param("region_name")
 
-	if (region_name == "") {
+	if region_name == "" {
 		c.String(http.StatusBadRequest, "You must specify region name")
 	}
 
@@ -550,6 +550,8 @@ func (a *Application) login(c *gin.Context) {
 			return
 		}
 
+		c.SetCookie("drones-api-token", "Bearer "+strToken, 3600000000000, "", "", true, true)
+
 		c.JSON(http.StatusOK, loginResp{
 			ExpiresIn:   3600000000000,
 			AccessToken: strToken,
@@ -558,26 +560,6 @@ func (a *Application) login(c *gin.Context) {
 	}
 
 	c.AbortWithStatus(http.StatusForbidden)
-}
-
-func createSignedTokenString() (string, error) {
-	privateKey, err := ioutil.ReadFile("demo.rsa")
-	if err != nil {
-		return "", fmt.Errorf("error reading private key file: %v\n", err)
-	}
-
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(privateKey)
-	if err != nil {
-		return "", fmt.Errorf("error parsing RSA private key: %v\n", err)
-	}
-
-	token := jwt.New(jwt.SigningMethodRS256)
-	tokenString, err := token.SignedString(key)
-	if err != nil {
-		return "", fmt.Errorf("error signing token: %v\n", err)
-	}
-
-	return tokenString, nil
 }
 
 type registerReq struct {
@@ -629,12 +611,6 @@ func (a *Application) register(c *gin.Context) {
 	})
 }
 
-func generateHashString(s string) string {
-	h := sha1.New()
-	h.Write([]byte(s))
-	return hex.EncodeToString(h.Sum(nil))
-}
-
 // @Summary Logout
 // @Details Deactivates user's current token
 // @Tags auth
@@ -670,4 +646,30 @@ func (a *Application) logout(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func generateHashString(s string) string {
+	h := sha1.New()
+	h.Write([]byte(s))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func createSignedTokenString() (string, error) {
+	privateKey, err := ioutil.ReadFile("demo.rsa")
+	if err != nil {
+		return "", fmt.Errorf("error reading private key file: %v\n", err)
+	}
+
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(privateKey)
+	if err != nil {
+		return "", fmt.Errorf("error parsing RSA private key: %v\n", err)
+	}
+
+	token := jwt.New(jwt.SigningMethodRS256)
+	tokenString, err := token.SignedString(key)
+	if err != nil {
+		return "", fmt.Errorf("error signing token: %v\n", err)
+	}
+
+	return tokenString, nil
 }
