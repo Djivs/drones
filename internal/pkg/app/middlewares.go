@@ -43,9 +43,9 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 
 			return
 		}
+
 		if !errors.Is(err, redis.Nil) { // значит что это не ошибка отсуствия - внутренняя ошибка
 			c.AbortWithError(http.StatusInternalServerError, err)
-
 			return
 		}
 
@@ -73,9 +73,11 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 		if !isAssigned {
 			c.AbortWithStatus(http.StatusForbidden)
 			log.Printf("role %d is not assigned in %d", myClaims.Role, assignedRoles)
-
 			return
 		}
+
+		c.Set("role", myClaims.Role)
+		c.Set("userUUID", myClaims.UserUUID)
 	}
 
 }

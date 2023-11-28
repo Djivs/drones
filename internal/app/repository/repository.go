@@ -140,12 +140,16 @@ func (r *Repository) GetAllRegions(name_pattern string, district string, status 
 	return regions, nil
 }
 
-func (r *Repository) GetAllFlights(status string) ([]ds.Flight, error) {
+func (r *Repository) GetAllFlights(status string, roleNumber role.Role, userUUID uuid.UUID) ([]ds.Flight, error) {
 	flights := []ds.Flight{}
 
 	var tx *gorm.DB = r.db
 	if status != "" {
 		tx = tx.Where("status = ?", status)
+	}
+
+	if roleNumber == role.User {
+		tx = tx.Where("user_refer = ?", userUUID)
 	}
 
 	err := tx.Find(&flights).Error

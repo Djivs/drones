@@ -80,7 +80,6 @@ func (a *Application) StartServer() {
 	a.r.GET("regions", a.get_regions)
 	a.r.GET("region/:region", a.get_region)
 
-	a.r.GET("flights", a.get_flights)
 	a.r.GET("flight", a.get_flight)
 
 	a.r.PUT("book", a.book_region)
@@ -103,8 +102,9 @@ func (a *Application) StartServer() {
 	a.r.POST("/login", a.login)
 	a.r.POST("/register", a.register)
 	a.r.POST("/logout", a.logout)
-	a.r.Use(a.WithAuthCheck(role.Admin)).GET("/ping", a.Ping)
+	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).GET("flights", a.get_flights)
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/add", a.add_region)
+	a.r.Use(a.WithAuthCheck(role.Admin)).GET("/ping", a.Ping)
 
 	a.r.Run(":8000")
 
@@ -301,9 +301,15 @@ func (a *Application) book_region(c *gin.Context) {
 // @Param status query string false "Flights status"
 // @Router       /flights [get]
 func (a *Application) get_flights(c *gin.Context) {
+	_roleNumber, _ := c.Get("role")
+	_userUUID, _ := c.Get("userUUID")
+
+	roleNumber := _roleNumber.(role.Role)
+	userUUID := _userUUID.(uuid.UUID)
+
 	status := c.Query("status")
 
-	flights, err := a.repo.GetAllFlights(status)
+	flights, err := a.repo.GetAllFlights(status, roleNumber, userUUID)
 	if err != nil {
 		c.Error(err)
 		return
