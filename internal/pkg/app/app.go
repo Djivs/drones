@@ -502,16 +502,11 @@ func (a *Application) login(c *gin.Context) {
 		return
 	}
 
-	log.Println(req.Login)
-
 	user, err := a.repo.GetUserByLogin(req.Login)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-
-	log.Println(user)
-
 	if req.Login == user.Name && user.Pass == generateHashString(req.Password) {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, &ds.JWTClaims{
 			StandardClaims: jwt.StandardClaims{
@@ -519,7 +514,7 @@ func (a *Application) login(c *gin.Context) {
 				IssuedAt:  time.Now().Unix(),
 				Issuer:    "dj1vs",
 			},
-			UserUUID: uuid.New(), // test uuid
+			UserUUID: user.UUID,
 			Scopes:   []string{}, // test data
 			Role:     user.Role,
 		})
