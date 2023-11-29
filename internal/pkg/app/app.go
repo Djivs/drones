@@ -39,6 +39,15 @@ type Application struct {
 	redis  *redis.Client
 }
 
+type registerReq struct {
+	Name string `json:"name"` // лучше назвать то же самое что login
+	Pass string `json:"pass"`
+}
+
+type registerResp struct {
+	Ok bool `json:"ok"`
+}
+
 type loginReq struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
@@ -101,7 +110,6 @@ func (a *Application) StartServer() {
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete/:region_name", a.delete_region)
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/edit", a.edit_region)
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/add", a.add_region)
-	a.r.Use(a.WithAuthCheck(role.Admin)).GET("/ping", a.Ping)
 
 	a.r.Run(":8000")
 
@@ -110,7 +118,7 @@ func (a *Application) StartServer() {
 
 // @Summary Get all existing regions
 // @Description Returns all existing regions
-// @Tags regions
+// @Tags Регионы
 // @Accept json
 // @Produce json
 // @Success 200 {} json
@@ -132,38 +140,38 @@ func (a *Application) get_regions(c *gin.Context) {
 	c.JSON(http.StatusOK, regions)
 }
 
-// @Summary      Adds region to database
-// @Description  Creates a new reigon with parameters, specified in json
-// @Tags regions
+// @Summary	Добавляет новый регион в БД
+// @Description  Создаёт новый регион с параметрами, описанными в json
+// @Tags Регионы
 // @Accept json
 // @Produce      json
-// @Param region body ds.Region true "New region's details"
-// @Success      201  {object}  string "Region created successfully"
+// @Param region body ds.Region true "Характеристики нового региона"
+// @Success      201  {object}  string "Регион успешно добавлен"
 // @Router       /region/add [put]
 func (a *Application) add_region(c *gin.Context) {
 	var region ds.Region
 
 	if err := c.BindJSON(&region); err != nil || region.Name == "" || region.Status == "" {
-		c.String(http.StatusBadRequest, "Can't parse region\n"+err.Error())
+		c.String(http.StatusBadRequest, "Не получается распознать регион\n"+err.Error())
 		return
 	}
 
 	err := a.repo.CreateRegion(region)
 
 	if err != nil {
-		c.String(http.StatusNotFound, "Can't create region\n"+err.Error())
+		c.String(http.StatusNotFound, "Не получается добавить регион\n"+err.Error())
 		return
 	}
 
-	c.String(http.StatusCreated, "Region created successfully")
+	c.String(http.StatusCreated, "Регион успешно добавлен")
 
 }
 
-// @Summary      Get region
-// @Description  Returns region with given name
-// @Tags         regions
+// @Summary      Получить регион
+// @Description  Возвращает данные региона с переданным названием
+// @Tags Регионы
 // @Produce      json
-// @Param region path string true "Regions name"
+// @Param region path string true "Название региона"
 // @Success      200  {object}  string
 // @Router       /region/{region} [get]
 func (a *Application) get_region(c *gin.Context) {
@@ -181,13 +189,13 @@ func (a *Application) get_region(c *gin.Context) {
 
 }
 
-// @Summary      Edits region
-// @Description  Finds region by name and updates its fields
-// @Tags         regions
+// @Summary      Редактировать регион
+// @Description  Находит регион по имени и обновляет перечисленные поля
+// @Tags         Регионы
 // @Accept json
 // @Produce      json
 // @Success      302  {object}  string
-// @Param region body ds.Region true "Edited regioons data (must contain regions name or id)"
+// @Param region body ds.Region true "Данные редактируемого региона (должны содержать имя региона или его id)"
 // @Router       /region/edit [put]
 func (a *Application) edit_region(c *gin.Context) {
 	var region *ds.Region
@@ -208,19 +216,19 @@ func (a *Application) edit_region(c *gin.Context) {
 
 }
 
-// @Summary      Deletes region
-// @Description  Finds region by name and changes its status to "Недоступен"
-// @Tags         regions
+// @Summary      Удалить регион
+// @Description  Находит регион по его названию и меняет его статус на "Недоступен"
+// @Tags         Регионы
 // @Accept json
 // @Produce      json
 // @Success      302  {object}  string
-// @Param region_name path string true "Regions name"
+// @Param region_name path string true "Название региона"
 // @Router       /region/delete/{region_name} [put]
 func (a *Application) delete_region(c *gin.Context) {
 	region_name := c.Param("region_name")
 
 	if region_name == "" {
-		c.String(http.StatusBadRequest, "You must specify region name")
+		c.String(http.StatusBadRequest, "Нужно предоставить имя региона")
 
 		return
 	}
@@ -232,21 +240,21 @@ func (a *Application) delete_region(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusFound, "Region was successfully deleted")
+	c.String(http.StatusFound, "Регион был успешно удалён")
 }
 
-// @Summary      Deletes or restores region
-// @Description  Switches region status from "Действует" to "Недоступен" and back
-// @Tags         regions
+// @Summary      Удалить или восстановить регион
+// @Description  Меняет статус региона с "Действует" на "Недоступен" и обратно
+// @Tags         Регионы
 // @Produce      json
 // @Success      200  {object}  string
-// @Param region_name path string true "Regions name"
+// @Param region_name path string true "Название региона"
 // @Router       /region/delete_restore/{region_name} [get]
 func (a *Application) delete_restore_region(c *gin.Context) {
 	region_name := c.Param("region_name")
 
 	if region_name == "" {
-		c.String(http.StatusBadRequest, "You must specify region name")
+		c.String(http.StatusBadRequest, "Нужно предоставить название региона")
 	}
 
 	err := a.repo.DeleteRestoreRegion(region_name)
@@ -256,16 +264,16 @@ func (a *Application) delete_restore_region(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusFound, "Region status was successfully switched")
+	c.String(http.StatusFound, "Статус региона был успешно изменён")
 }
 
-// @Summary      Book region
-// @Description  Creates a new flight and adds current region in it
-// @Tags general
+// @Summary     Забронировать регион
+// @Description  Создаёт новую заявку и связывает её с регионом
+// @Tags Бронирование
 // @Accept json
 // @Produce      json
 // @Success      302  {object}  string
-// @Param Body body ds.BookRegionRequestBody true "Booking request parameters"
+// @Param Body body ds.BookRegionRequestBody true "Параметры бронирования"
 // @Router       /book [put]
 func (a *Application) book_region(c *gin.Context) {
 	var request_body ds.BookRegionRequestBody
@@ -297,12 +305,12 @@ func (a *Application) book_region(c *gin.Context) {
 
 }
 
-// @Summary      Get flights
-// @Description  Returns list of all available flights
-// @Tags         flights
+// @Summary      Получить заявки
+// @Description  Возвращает список всех доступных заявок
+// @Tags         Заявки
 // @Produce      json
 // @Success      302  {object}  string
-// @Param status query string false "Flights status"
+// @Param status query string false "Статус заявки"
 // @Router       /flights [get]
 func (a *Application) get_flights(c *gin.Context) {
 	_roleNumber, _ := c.Get("role")
@@ -322,13 +330,13 @@ func (a *Application) get_flights(c *gin.Context) {
 	c.JSON(http.StatusOK, flights)
 }
 
-// @Summary      Get flight
-// @Description  Returns flight with given parameters
-// @Tags         flights
+// @Summary      Получить заявку
+// @Description  Возвращает заявку с переданными параметрами
+// @Tags         Заявки
 // @Accept		 json
 // @Produce      json
 // @Success      302  {object}  string
-// @Param status query string false "Flights status"
+// @Param status query string false "Статус заявки"
 // @Router       /flight [get]
 func (a *Application) get_flight(c *gin.Context) {
 	status := c.Query("status")
@@ -352,13 +360,13 @@ func (a *Application) get_flight(c *gin.Context) {
 	c.JSON(http.StatusFound, found_flight)
 }
 
-// @Summary      Edits flight
-// @Description  Finds flight and updates it fields
-// @Tags         flights
+// @Summary      Редактировать заявку
+// @Description  Находит заявку и редактирует её поля
+// @Tags         Заявки
 // @Accept json
 // @Produce      json
 // @Success      201  {object}  string
-// @Param flight body ds.Flight false "Flight"
+// @Param flight body ds.Flight false "Заявка"
 // @Router       /flight/edit [put]
 func (a *Application) edit_flight(c *gin.Context) {
 	var flight *ds.Flight
@@ -375,12 +383,12 @@ func (a *Application) edit_flight(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusCreated, "Flight was successfuly edited")
+	c.String(http.StatusCreated, "Заявка была успешно обновлена")
 }
 
 // @Summary Edit flight status
 // @Description Получает id заявки и новый статус и производит необходимые обновления
-// @Tags flights
+// @Tags Заявки
 // @Accept json
 // @Produce json
 // @Success 201 {object} string
@@ -414,7 +422,7 @@ func (a *Application) flight_status_change(c *gin.Context) {
 				c.Error(err)
 				return
 			} else {
-				c.String(http.StatusCreated, "Flight status was successfully changed")
+				c.String(http.StatusCreated, "Статус заявки был успешно обновлён")
 			}
 		}
 	} else {
@@ -425,17 +433,17 @@ func (a *Application) flight_status_change(c *gin.Context) {
 			return
 		}
 
-		c.String(http.StatusCreated, "Flight status was successfully changed")
+		c.String(http.StatusCreated, "Статус заявки был успешно обновлён")
 	}
 }
 
-// @Summary      Deletes flight
-// @Description  Changes flight status to "Удалён"
-// @Tags         flights
+// @Summary      Удалить заявку
+// @Description  Меняет статус заявки на "Удалён"
+// @Tags         Заявки
 // @Accept json
 // @Produce      json
 // @Success      302  {object}  string
-// @Param flight_id path int true "Flight id"
+// @Param flight_id path int true "id заявки"
 // @Router       /flight/delete/{flight_id} [put]
 func (a *Application) delete_flight(c *gin.Context) {
 	flight_id, _ := strconv.Atoi(c.Param("flight_id"))
@@ -450,13 +458,13 @@ func (a *Application) delete_flight(c *gin.Context) {
 	c.String(http.StatusFound, "Flight was successfully deleted")
 }
 
-// @Summary      Deletes flight_to_region connection
-// @Description  Deletes region from flight
-// @Tags         flights
+// @Summary      Удаляет связь региона с заявкой
+// @Description  Удаляет запись в таблице fligt_to_region
+// @Tags         Заявки
 // @Accept json
 // @Produce      json
 // @Success      201  {object}  string
-// @Param request_body body ds.DeleteFlightToRegionRequestBody true "Request body"
+// @Param request_body body ds.DeleteFlightToRegionRequestBody true "Параметры запроса"
 // @Router       /flight_to_region/delete [put]
 func (a *Application) delete_flight_to_region(c *gin.Context) {
 	var requestBody ds.DeleteFlightToRegionRequestBody
@@ -473,32 +481,16 @@ func (a *Application) delete_flight_to_region(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusCreated, "Flight-to-region m-m was successfully deleted")
+	c.String(http.StatusCreated, "Связь региона с заявкой была успешно удалена")
 }
 
-type pingReq struct{}
-type pingResp struct {
-	Status string `json:"status"`
-}
-
-// @Summary      Show hello text
-// @Description  very very friendly response
-// @Tags         Tests
-// @Produce      json
-// @Success      200  {object}  pingResp
-// @Router       /ping/{name} [get]
-func (a *Application) Ping(gCtx *gin.Context) {
-	name := gCtx.Param("name")
-	gCtx.String(http.StatusOK, "Hello %s", name)
-}
-
-// @Summary Login into system
-// @Description Returns your token
-// @Tags auth
+// @Summary Вход в систему
+// @Description Проверяет данные для входа и в случае успеха возвращает токен для входа
+// @Tags Аутентификация
 // @Produce json
 // @Accept json
 // @Success 200 {object} loginResp
-// @Param request_body body loginReq true "Login request body"
+// @Param request_body body loginReq true "Данные для входа"
 // @Router /login [post]
 func (a *Application) login(c *gin.Context) {
 	req := &loginReq{}
@@ -533,7 +525,7 @@ func (a *Application) login(c *gin.Context) {
 		})
 
 		if token == nil {
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("token is nil"))
+			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("токен равен nil"))
 
 			return
 		}
@@ -542,7 +534,7 @@ func (a *Application) login(c *gin.Context) {
 
 		strToken, err := token.SignedString([]byte(jwtToken))
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("cant read str token"))
+			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("не получается просесть строку токена"))
 
 			return
 		}
@@ -559,22 +551,13 @@ func (a *Application) login(c *gin.Context) {
 	c.AbortWithStatus(http.StatusForbidden)
 }
 
-type registerReq struct {
-	Name string `json:"name"` // лучше назвать то же самое что login
-	Pass string `json:"pass"`
-}
-
-type registerResp struct {
-	Ok bool `json:"ok"`
-}
-
-// @Summary register a new user
-// @Description adds a new user to the database
-// @Tags auth
+// @Summary Зарегистрировать нового пользователя
+// @Description Добавляет в БД нового пользователя
+// @Tags Аутентификация
 // @Produce json
 // @Accept json
 // @Success 200 {object} registerResp
-// @Param request_body body registerReq true "Request body"
+// @Param request_body body registerReq true "Данные для регистрации"
 // @Router /register [post]
 func (a *Application) register(c *gin.Context) {
 	req := &registerReq{}
@@ -608,9 +591,9 @@ func (a *Application) register(c *gin.Context) {
 	})
 }
 
-// @Summary Logout
-// @Details Deactivates user's current token
-// @Tags auth
+// @Summary Выйти из системы
+// @Details Деактивирует текущий токен пользователя, добавляя его в блэклист в редисе
+// @Tags Аутентификация
 // @Produce json
 // @Accept json
 // @Success 200

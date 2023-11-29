@@ -6,9 +6,8 @@ import (
 	"log"
 )
 
-// @title drones
+// @title Заявки контроля маршрутов БПЛА
 // @version 0.0-0
-// @description UAV route control applications
 
 // @host 127.0.0.1:8000
 // @schemes http
