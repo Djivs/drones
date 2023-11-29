@@ -99,17 +99,17 @@ func (a *Application) StartServer() {
 	a.r.POST("/logout", a.logout)
 
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).GET("flight", a.get_flight)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).GET("flights", a.get_flights)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).PUT("book", a.book_region)
-	a.r.Use(a.WithAuthCheck(role.Admin, role.Moderator, role.User)).PUT("flight/status_change", a.flight_status_change)
+	a.r.GET("flights", a.get_flights)
+	a.r.PUT("book", a.book_region)
+	a.r.PUT("flight/status_change", a.flight_status_change)
 
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("flight/delete/:flight_id", a.delete_flight)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("flight_to_region/delete", a.delete_flight_to_region)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("flight/edit", a.edit_flight)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete/:region_name", a.delete_region)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/edit", a.edit_region)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/add", a.add_region)
+	a.r.PUT("flight/delete/:flight_id", a.delete_flight)
+	a.r.PUT("flight_to_region/delete", a.delete_flight_to_region)
+	a.r.PUT("flight/edit", a.edit_flight)
+	a.r.PUT("region/delete/:region_name", a.delete_region)
+	a.r.PUT("region/edit", a.edit_region)
+	a.r.PUT("region/add", a.add_region)
 
 	a.r.Run(":8000")
 
@@ -154,6 +154,10 @@ func (a *Application) add_region(c *gin.Context) {
 	if err := c.BindJSON(&region); err != nil || region.Name == "" || region.Status == "" {
 		c.String(http.StatusBadRequest, "Не получается распознать регион\n"+err.Error())
 		return
+	}
+
+	if region.Status == "" {
+		region.Status = "Черновик"
 	}
 
 	err := a.repo.CreateRegion(region)
@@ -408,15 +412,16 @@ func (a *Application) flight_status_change(c *gin.Context) {
 	userUUID := _userUUID.(uuid.UUID)
 	userRole := _userRole.(role.Role)
 
+	status, err := a.repo.GetFlightStatus(requestBody.ID)
+	if err == nil {
+		c.Error(err)
+		return
+	}
+
 	if userRole == role.User && requestBody.Status == "Удалён" {
-		status, err := a.repo.GetFlightStatus(requestBody.ID)
-		if err == nil {
-			c.Error(err)
-			return
-		}
 
 		if status == "Черновик" || status == "Сформирован" {
-			err := a.repo.ChangeFlightStatusUser(requestBody.ID, requestBody.Status, userUUID)
+			err = a.repo.ChangeFlightStatusUser(requestBody.ID, requestBody.Status, userUUID)
 
 			if err != nil {
 				c.Error(err)
@@ -426,11 +431,21 @@ func (a *Application) flight_status_change(c *gin.Context) {
 			}
 		}
 	} else {
-		err := a.repo.ChangeFlightStatus(requestBody.ID, requestBody.Status)
+		err = a.repo.ChangeFlightStatus(requestBody.ID, requestBody.Status)
 
 		if err != nil {
 			c.Error(err)
 			return
+		}
+
+		if userRole == role.Moderator && status == "Черновик" {
+			err = a.repo.SetFlightModerator(requestBody.ID, userUUID)
+
+			if err != nil {
+				c.Error(err)
+				return
+			}
+
 		}
 
 		c.String(http.StatusCreated, "Статус заявки был успешно обновлён")
