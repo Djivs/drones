@@ -310,6 +310,10 @@ func (r *Repository) GetFlightStatus(id int) (string, error) {
 	return result.Status, nil
 }
 
+func (r *Repository) SetFlightModerator(flightID int, moderatorUUID uuid.UUID) error {
+	return r.db.Model(&ds.Flight{}).Where("id = ?", flightID).Update("moderator_refer", moderatorUUID).Error
+}
+
 func (r *Repository) ChangeFlightStatusUser(id int, status string, userUUID uuid.UUID) error {
 	return r.db.Model(&ds.Flight{}).Where("id = ?", id).Where("user_refer = ?", userUUID).Update("status", status).Error
 }

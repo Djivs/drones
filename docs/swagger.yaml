@@ -53,6 +53,29 @@ definitions:
         type: integer
     type: object
   ds.Flight:
+    properties:
+      arrivalDate:
+        type: string
+      dateCreated:
+        type: string
+      dateFinished:
+        type: string
+      dateProcessed:
+        type: string
+      id:
+        type: integer
+      moderator:
+        $ref: '#/definitions/ds.User'
+      moderatorRefer:
+        type: string
+      status:
+        type: string
+      takeoffDate:
+        type: string
+      user:
+        $ref: '#/definitions/ds.User'
+      userRefer:
+        type: string
     type: object
   ds.Region:
     properties:
@@ -81,6 +104,29 @@ definitions:
       status:
         type: string
     type: object
+  ds.User:
+    properties:
+      name:
+        type: string
+      pass:
+        type: string
+      role:
+        $ref: '#/definitions/role.Role'
+      uuid:
+        type: string
+    type: object
+  role.Role:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-varnames:
+    - Undefined
+    - User
+    - Moderator
+    - Admin
 host: 127.0.0.1:8000
 info:
   contact: {}
@@ -91,9 +137,15 @@ paths:
     put:
       consumes:
       - application/json
+<<<<<<< HEAD
       description: Создаёт новую заявку и добавляет в неё регион
       parameters:
       - description: Параметры запроса на бронирование
+=======
+      description: Создаёт новую заявку и связывает её с регионом
+      parameters:
+      - description: Параметры бронирования
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
         in: body
         name: Body
         required: true
@@ -113,7 +165,11 @@ paths:
     get:
       consumes:
       - application/json
+<<<<<<< HEAD
       description: Возвращает заяввку с указанными параметрами
+=======
+      description: Возвращает заявку с переданными параметрами
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
       parameters:
       - description: Статус заявки
         in: query
@@ -154,7 +210,11 @@ paths:
     put:
       consumes:
       - application/json
+<<<<<<< HEAD
       description: Находит заявку и обновляет её поля
+=======
+      description: Находит заявку и редактирует её поля
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
       parameters:
       - description: Заявка
         in: body
@@ -168,7 +228,11 @@ paths:
           description: Created
           schema:
             type: string
+<<<<<<< HEAD
       summary: Отредактировать заявку
+=======
+      summary: Редактировать заявку
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
       tags:
       - Заявки
   /flight/status_change:
@@ -197,8 +261,14 @@ paths:
     put:
       consumes:
       - application/json
+<<<<<<< HEAD
       parameters:
       - description: Тело запроса
+=======
+      description: Удаляет запись в таблице fligt_to_region
+      parameters:
+      - description: Параметры запроса
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
         in: body
         name: request_body
         required: true
@@ -216,9 +286,15 @@ paths:
       - Заявки
   /flights:
     get:
+<<<<<<< HEAD
       description: Возвращает список заявок
       parameters:
       - description: Статус заявок
+=======
+      description: Возвращает список всех доступных заявок
+      parameters:
+      - description: Статус заявки
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
         in: query
         name: status
         type: string
@@ -236,9 +312,16 @@ paths:
     post:
       consumes:
       - application/json
+<<<<<<< HEAD
       description: Возвращает jwt токен
       parameters:
       - description: Тело запроса на вход
+=======
+      description: Проверяет данные для входа и в случае успеха возвращает токен для
+        входа
+      parameters:
+      - description: Данные для входа
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
         in: body
         name: request_body
         required: true
@@ -251,7 +334,11 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/app.loginResp'
+<<<<<<< HEAD
       summary: Войти в систему
+=======
+      summary: Вход в систему
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
       tags:
       - Аутентификация
   /logout:
@@ -268,9 +355,15 @@ paths:
       - Аутентификация
   /region/{region}:
     get:
+<<<<<<< HEAD
       description: Возвращает регион по имени
       parameters:
       - description: Имя региона
+=======
+      description: Возвращает данные региона с переданным названием
+      parameters:
+      - description: Название региона
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
         in: path
         name: region
         required: true
@@ -289,9 +382,15 @@ paths:
     put:
       consumes:
       - application/json
+<<<<<<< HEAD
       description: Создаёт новый регион с праметрами, описанными в json'е
       parameters:
       - description: Данные нового регионы
+=======
+      description: Создаёт новый регион с параметрами, описанными в json
+      parameters:
+      - description: Характеристики нового региона
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
         in: body
         name: region
         required: true
@@ -301,19 +400,30 @@ paths:
       - application/json
       responses:
         "201":
+<<<<<<< HEAD
           description: Регион был успешно создан
           schema:
             type: string
       summary: Добавить регион в БД
+=======
+          description: Регион успешно добавлен
+          schema:
+            type: string
+      summary: Добавляет новый регион в БД
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
       tags:
       - Регионы
   /region/delete/{region_name}:
     put:
       consumes:
       - application/json
+<<<<<<< HEAD
       description: Находит регион по имени и меняет его статус на "Недоступен"
+=======
+      description: Находит регион по его названию и меняет его статус на "Недоступен"
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
       parameters:
-      - description: Regions name
+      - description: Название региона
         in: path
         name: region_name
         required: true
@@ -330,9 +440,15 @@ paths:
       - Регионы
   /region/delete_restore/{region_name}:
     get:
+<<<<<<< HEAD
       description: Меняет статус региона с "Действует" на "Недоступен" и наобороь
       parameters:
       - description: Имя региона
+=======
+      description: Меняет статус региона с "Действует" на "Недоступен" и обратно
+      parameters:
+      - description: Название региона
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
         in: path
         name: region_name
         required: true
@@ -344,16 +460,26 @@ paths:
           description: OK
           schema:
             type: string
+<<<<<<< HEAD
       summary: Удаляет или восстанавливает регион
+=======
+      summary: Удалить или восстановить регион
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
       tags:
       - Регионы
   /region/edit:
     put:
       consumes:
       - application/json
+<<<<<<< HEAD
       description: Находит регион по имени и обновляет его поля
       parameters:
       - description: Новые данные изменяемого региона (должно быть имя региона или
+=======
+      description: Находит регион по имени и обновляет перечисленные поля
+      parameters:
+      - description: Данные редактируемого региона (должны содержать имя региона или
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
           его id)
         in: body
         name: region
@@ -367,7 +493,11 @@ paths:
           description: Found
           schema:
             type: string
+<<<<<<< HEAD
       summary: Отредактировать регион
+=======
+      summary: Редактировать регион
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
       tags:
       - Регионы
   /regions:
@@ -401,9 +531,15 @@ paths:
     post:
       consumes:
       - application/json
+<<<<<<< HEAD
       description: Добавляет нового пользователя в БД
       parameters:
       - description: Тело запроса
+=======
+      description: Добавляет в БД нового пользователя
+      parameters:
+      - description: Данные для регистрации
+>>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
         in: body
         name: request_body
         required: true

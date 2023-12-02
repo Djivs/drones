@@ -39,6 +39,15 @@ type Application struct {
 	redis  *redis.Client
 }
 
+type registerReq struct {
+	Name string `json:"name"` // лучше назвать то же самое что login
+	Pass string `json:"pass"`
+}
+
+type registerResp struct {
+	Ok bool `json:"ok"`
+}
+
 type loginReq struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
@@ -90,9 +99,9 @@ func (a *Application) StartServer() {
 	a.r.POST("/logout", a.logout)
 
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).GET("flight", a.get_flight)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).GET("flights", a.get_flights)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).PUT("book", a.book_region)
-	a.r.Use(a.WithAuthCheck(role.Admin, role.Moderator, role.User)).PUT("flight/status_change", a.flight_status_change)
+	a.r.GET("flights", a.get_flights)
+	a.r.PUT("book", a.book_region)
+	a.r.PUT("flight/status_change", a.flight_status_change)
 
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("flight/delete/:flight_id", a.delete_flight)
@@ -144,6 +153,10 @@ func (a *Application) add_region(c *gin.Context) {
 	if err := c.BindJSON(&region); err != nil || region.Name == "" || region.Status == "" {
 		c.String(http.StatusBadRequest, "Невозможно распознать регион\n"+err.Error())
 		return
+	}
+
+	if region.Status == "" {
+		region.Status = "Черновик"
 	}
 
 	err := a.repo.CreateRegion(region)
@@ -212,13 +225,13 @@ func (a *Application) edit_region(c *gin.Context) {
 // @Accept json
 // @Produce      json
 // @Success      302  {object}  string
-// @Param region_name path string true "Regions name"
+// @Param region_name path string true "Название региона"
 // @Router       /region/delete/{region_name} [put]
 func (a *Application) delete_region(c *gin.Context) {
 	region_name := c.Param("region_name")
 
 	if region_name == "" {
-		c.String(http.StatusBadRequest, "You must specify region name")
+		c.String(http.StatusBadRequest, "Нужно предоставить имя региона")
 
 		return
 	}
@@ -230,7 +243,7 @@ func (a *Application) delete_region(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusFound, "Region was successfully deleted")
+	c.String(http.StatusFound, "Регион был успешно удалён")
 }
 
 // @Summary      Удаляет или восстанавливает регион
@@ -244,7 +257,7 @@ func (a *Application) delete_restore_region(c *gin.Context) {
 	region_name := c.Param("region_name")
 
 	if region_name == "" {
-		c.String(http.StatusBadRequest, "You must specify region name")
+		c.String(http.StatusBadRequest, "Нужно предоставить название региона")
 	}
 
 	err := a.repo.DeleteRestoreRegion(region_name)
@@ -254,7 +267,7 @@ func (a *Application) delete_restore_region(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusFound, "Region status was successfully switched")
+	c.String(http.StatusFound, "Статус региона был успешно изменён")
 }
 
 // @Summary      Забронировать регион
@@ -327,6 +340,7 @@ func (a *Application) get_flights(c *gin.Context) {
 // @Produce      json
 // @Success      302  {object}  string
 // @Param status query string false "Статус заявки"
+// @Param status query string false "Статус заявки"
 // @Router       /flight [get]
 func (a *Application) get_flight(c *gin.Context) {
 	status := c.Query("status")
@@ -357,6 +371,7 @@ func (a *Application) get_flight(c *gin.Context) {
 // @Produce      json
 // @Success      201  {object}  string
 // @Param flight body ds.Flight false "Заявка"
+// @Param flight body ds.Flight false "Заявка"
 // @Router       /flight/edit [put]
 func (a *Application) edit_flight(c *gin.Context) {
 	var flight *ds.Flight
@@ -373,11 +388,12 @@ func (a *Application) edit_flight(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusCreated, "Flight was successfuly edited")
+	c.String(http.StatusCreated, "Заявка была успешно обновлена")
 }
 
 // @Summary Изменить статус заявки
 // @Description Получает id заявки и новый статус и производит необходимые обновления
+// @Tags Заявки
 // @Tags Заявки
 // @Accept json
 // @Produce json
@@ -398,41 +414,56 @@ func (a *Application) flight_status_change(c *gin.Context) {
 	userUUID := _userUUID.(uuid.UUID)
 	userRole := _userRole.(role.Role)
 
+	status, err := a.repo.GetFlightStatus(requestBody.ID)
+	if err == nil {
+		c.Error(err)
+		return
+	}
+
 	if userRole == role.User && requestBody.Status == "Удалён" {
-		status, err := a.repo.GetFlightStatus(requestBody.ID)
-		if err == nil {
-			c.Error(err)
-			return
-		}
 
 		if status == "Черновик" || status == "Сформирован" {
-			err := a.repo.ChangeFlightStatusUser(requestBody.ID, requestBody.Status, userUUID)
+			err = a.repo.ChangeFlightStatusUser(requestBody.ID, requestBody.Status, userUUID)
 
 			if err != nil {
 				c.Error(err)
 				return
 			} else {
-				c.String(http.StatusCreated, "Flight status was successfully changed")
+				c.String(http.StatusCreated, "Статус заявки был успешно обновлён")
 			}
 		}
 	} else {
-		err := a.repo.ChangeFlightStatus(requestBody.ID, requestBody.Status)
+		err = a.repo.ChangeFlightStatus(requestBody.ID, requestBody.Status)
 
 		if err != nil {
 			c.Error(err)
 			return
 		}
 
-		c.String(http.StatusCreated, "Flight status was successfully changed")
+		if userRole == role.Moderator && status == "Черновик" {
+			err = a.repo.SetFlightModerator(requestBody.ID, userUUID)
+
+			if err != nil {
+				c.Error(err)
+				return
+			}
+
+		}
+
+		c.String(http.StatusCreated, "Статус заявки был успешно обновлён")
 	}
 }
 
 // @Summary      Удалить заявку
 // @Description  Меняет статус заявки на "Удалён"
 // @Tags         Заявки
+// @Summary      Удалить заявку
+// @Description  Меняет статус заявки на "Удалён"
+// @Tags         Заявки
 // @Accept json
 // @Produce      json
 // @Success      302  {object}  string
+// @Param flight_id path int true "id заявки"
 // @Param flight_id path int true "id заявки"
 // @Router       /flight/delete/{flight_id} [put]
 func (a *Application) delete_flight(c *gin.Context) {
@@ -491,16 +522,11 @@ func (a *Application) login(c *gin.Context) {
 		return
 	}
 
-	log.Println(req.Login)
-
 	user, err := a.repo.GetUserByLogin(req.Login)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-
-	log.Println(user)
-
 	if req.Login == user.Name && user.Pass == generateHashString(req.Password) {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, &ds.JWTClaims{
 			StandardClaims: jwt.StandardClaims{
@@ -514,7 +540,7 @@ func (a *Application) login(c *gin.Context) {
 		})
 
 		if token == nil {
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("token is nil"))
+			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("токен равен nil"))
 
 			return
 		}
@@ -523,7 +549,7 @@ func (a *Application) login(c *gin.Context) {
 
 		strToken, err := token.SignedString([]byte(jwtToken))
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("cant read str token"))
+			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("не получается просесть строку токена"))
 
 			return
 		}
