@@ -16,11 +16,6 @@ definitions:
       token_type:
         type: string
     type: object
-  app.pingResp:
-    properties:
-      status:
-        type: string
-    type: object
   app.registerReq:
     properties:
       name:
@@ -89,17 +84,16 @@ definitions:
 host: 127.0.0.1:8000
 info:
   contact: {}
-  description: UAV route control applications
-  title: drones
+  title: Заявки контроля маршрутов БПЛА
   version: 0.0-0
 paths:
   /book:
     put:
       consumes:
       - application/json
-      description: Creates a new flight and adds current region in it
+      description: Создаёт новую заявку и добавляет в неё регион
       parameters:
-      - description: Booking request parameters
+      - description: Параметры запроса на бронирование
         in: body
         name: Body
         required: true
@@ -112,16 +106,16 @@ paths:
           description: Found
           schema:
             type: string
-      summary: Book region
+      summary: Забронировать регион
       tags:
-      - general
+      - Бронирование
   /flight:
     get:
       consumes:
       - application/json
-      description: Returns flight with given parameters
+      description: Возвращает заяввку с указанными параметрами
       parameters:
-      - description: Flights status
+      - description: Статус заявки
         in: query
         name: status
         type: string
@@ -132,16 +126,16 @@ paths:
           description: Found
           schema:
             type: string
-      summary: Get flight
+      summary: Получить заявку
       tags:
-      - flights
+      - Заявки
   /flight/delete/{flight_id}:
     put:
       consumes:
       - application/json
-      description: Changes flight status to "Удалён"
+      description: Меняет статус заявки на "Удалён"
       parameters:
-      - description: Flight id
+      - description: id заявки
         in: path
         name: flight_id
         required: true
@@ -153,16 +147,16 @@ paths:
           description: Found
           schema:
             type: string
-      summary: Deletes flight
+      summary: Удалить заявку
       tags:
-      - flights
+      - Заявки
   /flight/edit:
     put:
       consumes:
       - application/json
-      description: Finds flight and updates it fields
+      description: Находит заявку и обновляет её поля
       parameters:
-      - description: Flight
+      - description: Заявка
         in: body
         name: flight
         schema:
@@ -174,16 +168,16 @@ paths:
           description: Created
           schema:
             type: string
-      summary: Edits flight
+      summary: Отредактировать заявку
       tags:
-      - flights
+      - Заявки
   /flight/status_change:
     put:
       consumes:
       - application/json
       description: Получает id заявки и новый статус и производит необходимые обновления
       parameters:
-      - description: Request body
+      - description: Тело запроса
         in: body
         name: request_body
         required: true
@@ -196,16 +190,15 @@ paths:
           description: Created
           schema:
             type: string
-      summary: Edit flight status
+      summary: Изменить статус заявки
       tags:
-      - flights
+      - Заявки
   /flight_to_region/delete:
     put:
       consumes:
       - application/json
-      description: Deletes region from flight
       parameters:
-      - description: Request body
+      - description: Тело запроса
         in: body
         name: request_body
         required: true
@@ -218,14 +211,14 @@ paths:
           description: Created
           schema:
             type: string
-      summary: Deletes flight_to_region connection
+      summary: Удаляет связь региона с заявкой
       tags:
-      - flights
+      - Заявки
   /flights:
     get:
-      description: Returns list of all available flights
+      description: Возвращает список заявок
       parameters:
-      - description: Flights status
+      - description: Статус заявок
         in: query
         name: status
         type: string
@@ -236,16 +229,16 @@ paths:
           description: Found
           schema:
             type: string
-      summary: Get flights
+      summary: Получить заявки
       tags:
-      - flights
+      - Заявки
   /login:
     post:
       consumes:
       - application/json
-      description: Returns your token
+      description: Возвращает jwt токен
       parameters:
-      - description: Login request body
+      - description: Тело запроса на вход
         in: body
         name: request_body
         required: true
@@ -258,9 +251,9 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/app.loginResp'
-      summary: Login into system
+      summary: Войти в систему
       tags:
-      - auth
+      - Аутентификация
   /logout:
     post:
       consumes:
@@ -270,27 +263,14 @@ paths:
       responses:
         "200":
           description: OK
-      summary: Logout
+      summary: Выйти из системы
       tags:
-      - auth
-  /ping/{name}:
-    get:
-      description: very very friendly response
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/app.pingResp'
-      summary: Show hello text
-      tags:
-      - Tests
+      - Аутентификация
   /region/{region}:
     get:
-      description: Returns region with given name
+      description: Возвращает регион по имени
       parameters:
-      - description: Regions name
+      - description: Имя региона
         in: path
         name: region
         required: true
@@ -302,16 +282,16 @@ paths:
           description: OK
           schema:
             type: string
-      summary: Get region
+      summary: Получить регион
       tags:
-      - regions
+      - Регионы
   /region/add:
     put:
       consumes:
       - application/json
-      description: Creates a new reigon with parameters, specified in json
+      description: Создаёт новый регион с праметрами, описанными в json'е
       parameters:
-      - description: New region's details
+      - description: Данные нового регионы
         in: body
         name: region
         required: true
@@ -321,17 +301,17 @@ paths:
       - application/json
       responses:
         "201":
-          description: Region created successfully
+          description: Регион был успешно создан
           schema:
             type: string
-      summary: Adds region to database
+      summary: Добавить регион в БД
       tags:
-      - regions
+      - Регионы
   /region/delete/{region_name}:
     put:
       consumes:
       - application/json
-      description: Finds region by name and changes its status to "Недоступен"
+      description: Находит регион по имени и меняет его статус на "Недоступен"
       parameters:
       - description: Regions name
         in: path
@@ -345,14 +325,14 @@ paths:
           description: Found
           schema:
             type: string
-      summary: Deletes region
+      summary: Удалить регион
       tags:
-      - regions
+      - Регионы
   /region/delete_restore/{region_name}:
     get:
-      description: Switches region status from "Действует" to "Недоступен" and back
+      description: Меняет статус региона с "Действует" на "Недоступен" и наобороь
       parameters:
-      - description: Regions name
+      - description: Имя региона
         in: path
         name: region_name
         required: true
@@ -364,16 +344,17 @@ paths:
           description: OK
           schema:
             type: string
-      summary: Deletes or restores region
+      summary: Удаляет или восстанавливает регион
       tags:
-      - regions
+      - Регионы
   /region/edit:
     put:
       consumes:
       - application/json
-      description: Finds region by name and updates its fields
+      description: Находит регион по имени и обновляет его поля
       parameters:
-      - description: Edited regioons data (must contain regions name or id)
+      - description: Новые данные изменяемого региона (должно быть имя региона или
+          его id)
         in: body
         name: region
         required: true
@@ -386,24 +367,23 @@ paths:
           description: Found
           schema:
             type: string
-      summary: Edits region
+      summary: Отредактировать регион
       tags:
-      - regions
+      - Регионы
   /regions:
     get:
       consumes:
       - application/json
-      description: Returns all existing regions
       parameters:
-      - description: Regions name pattern
+      - description: Паттерн имени региона
         in: query
         name: name_pattern
         type: string
-      - description: Regions district
+      - description: Округ
         in: query
         name: district
         type: string
-      - description: Regions status (Действует/Недействителен)
+      - description: Статус региона (Действует/Недействителен)
         in: query
         name: status
         type: string
@@ -414,16 +394,16 @@ paths:
           description: OK
           schema:
             type: ""
-      summary: Get all existing regions
+      summary: Получить все регионы
       tags:
-      - regions
+      - Регионы
   /register:
     post:
       consumes:
       - application/json
-      description: adds a new user to the database
+      description: Добавляет нового пользователя в БД
       parameters:
-      - description: Request body
+      - description: Тело запроса
         in: body
         name: request_body
         required: true
@@ -436,9 +416,9 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/app.registerResp'
-      summary: register a new user
+      summary: Зарегистрировать нового пользователя
       tags:
-      - auth
+      - Аутентификация
 schemes:
 - http
 swagger: "2.0"
