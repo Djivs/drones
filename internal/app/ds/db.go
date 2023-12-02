@@ -17,7 +17,7 @@ type Region struct {
 	HeadEmail      string `gorm:"type:varchar(50)"`
 	HeadPhone      string `gorm:"type:varchar(50)"`
 	AverageHeightM float64
-	Image          string `gorm:"type:bytea"`
+	ImageName      string
 }
 
 type Flight struct {
@@ -25,7 +25,7 @@ type Flight struct {
 	ModeratorRefer uuid.UUID      `gorm:"type:uuid"`
 	UserRefer      uuid.UUID      `gorm:"type:uuid;not null"`
 	Status         string         `gorm:"type:varchar(50)"`
-	DateCreated    datatypes.Date `gorm:"not null" swaggertype:"primitive,string"` 
+	DateCreated    datatypes.Date `gorm:"not null" swaggertype:"primitive,string"`
 	DateProcessed  datatypes.Date `swaggertype:"primitive,string"`
 	DateFinished   datatypes.Date `swaggertype:"primitive,string"`
 	Moderator      User           `gorm:"foreignKey:ModeratorRefer;references:UUID"`
