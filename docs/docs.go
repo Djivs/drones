@@ -18,6 +18,7 @@ const docTemplate = `{
         "/book": {
             "put": {
                 "description": "Создаёт новую заявку и связывает её с регионом",
+                "description": "Создаёт новую заявку и добавляет в неё регион",
                 "consumes": [
                     "application/json"
                 ],
@@ -26,11 +27,13 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Бронирование"
+                    "Бронирование"
                 ],
+                "summary": "Забронировать регион",
                 "summary": "Забронировать регион",
                 "parameters": [
                     {
-                        "description": "Параметры бронирования",
+                        "description": "Параметры запроса на бронирование",
                         "name": "Body",
                         "in": "body",
                         "required": true,
@@ -51,7 +54,7 @@ const docTemplate = `{
         },
         "/flight": {
             "get": {
-                "description": "Возвращает заявку с переданными параметрами",
+                "description": "Возвращает заяввку с указанными параметрами",
                 "consumes": [
                     "application/json"
                 ],
@@ -60,11 +63,14 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Заявки"
+                    "Заявки"
                 ],
+                "summary": "Получить заявку",
                 "summary": "Получить заявку",
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Статус заявки",
                         "description": "Статус заявки",
                         "name": "status",
                         "in": "query"
@@ -83,6 +89,7 @@ const docTemplate = `{
         "/flight/delete/{flight_id}": {
             "put": {
                 "description": "Меняет статус заявки на \"Удалён\"",
+                "description": "Меняет статус заявки на \"Удалён\"",
                 "consumes": [
                     "application/json"
                 ],
@@ -91,11 +98,14 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Заявки"
+                    "Заявки"
                 ],
+                "summary": "Удалить заявку",
                 "summary": "Удалить заявку",
                 "parameters": [
                     {
                         "type": "integer",
+                        "description": "id заявки",
                         "description": "id заявки",
                         "name": "flight_id",
                         "in": "path",
@@ -114,7 +124,7 @@ const docTemplate = `{
         },
         "/flight/edit": {
             "put": {
-                "description": "Находит заявку и редактирует её поля",
+                "description": "Находит заявку и обновляет её поля",
                 "consumes": [
                     "application/json"
                 ],
@@ -123,10 +133,12 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Заявки"
+                    "Заявки"
                 ],
-                "summary": "Редактировать заявку",
+                "summary": "Отредактировать заявку",
                 "parameters": [
                     {
+                        "description": "Заявка",
                         "description": "Заявка",
                         "name": "flight",
                         "in": "body",
@@ -156,11 +168,12 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Заявки"
+                    "Заявки"
                 ],
-                "summary": "Edit flight status",
+                "summary": "Изменить статус заявки",
                 "parameters": [
                     {
-                        "description": "Request body",
+                        "description": "Тело запроса",
                         "name": "request_body",
                         "in": "body",
                         "required": true,
@@ -181,7 +194,6 @@ const docTemplate = `{
         },
         "/flight_to_region/delete": {
             "put": {
-                "description": "Удаляет запись в таблице fligt_to_region",
                 "consumes": [
                     "application/json"
                 ],
@@ -190,11 +202,13 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Заявки"
+                    "Заявки"
                 ],
+                "summary": "Удаляет связь региона с заявкой",
                 "summary": "Удаляет связь региона с заявкой",
                 "parameters": [
                     {
-                        "description": "Параметры запроса",
+                        "description": "Тело запроса",
                         "name": "request_body",
                         "in": "body",
                         "required": true,
@@ -215,18 +229,20 @@ const docTemplate = `{
         },
         "/flights": {
             "get": {
-                "description": "Возвращает список всех доступных заявок",
+                "description": "Возвращает список заявок",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Заявки"
+                    "Заявки"
                 ],
+                "summary": "Получить заявки",
                 "summary": "Получить заявки",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Статус заявки",
+                        "description": "Статус заявок",
                         "name": "status",
                         "in": "query"
                     }
@@ -243,7 +259,7 @@ const docTemplate = `{
         },
         "/login": {
             "post": {
-                "description": "Проверяет данные для входа и в случае успеха возвращает токен для входа",
+                "description": "Возвращает jwt токен",
                 "consumes": [
                     "application/json"
                 ],
@@ -252,11 +268,12 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Аутентификация"
+                    "Аутентификация"
                 ],
-                "summary": "Вход в систему",
+                "summary": "Войти в систему",
                 "parameters": [
                     {
-                        "description": "Данные для входа",
+                        "description": "Тело запроса на вход",
                         "name": "request_body",
                         "in": "body",
                         "required": true,
@@ -285,7 +302,9 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Аутентификация"
+                    "Аутентификация"
                 ],
+                "summary": "Выйти из системы",
                 "summary": "Выйти из системы",
                 "responses": {
                     "200": {
@@ -296,7 +315,7 @@ const docTemplate = `{
         },
         "/region/add": {
             "put": {
-                "description": "Создаёт новый регион с параметрами, описанными в json",
+                "description": "Создаёт новый регион с праметрами, описанными в json'е",
                 "consumes": [
                     "application/json"
                 ],
@@ -305,11 +324,12 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Регионы"
+                    "Регионы"
                 ],
-                "summary": "Добавляет новый регион в БД",
+                "summary": "Добавить регион в БД",
                 "parameters": [
                     {
-                        "description": "Характеристики нового региона",
+                        "description": "Данные нового регионы",
                         "name": "region",
                         "in": "body",
                         "required": true,
@@ -320,7 +340,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Регион успешно добавлен",
+                        "description": "Регион был успешно создан",
                         "schema": {
                             "type": "string"
                         }
@@ -330,7 +350,7 @@ const docTemplate = `{
         },
         "/region/delete/{region_name}": {
             "put": {
-                "description": "Находит регион по его названию и меняет его статус на \"Недоступен\"",
+                "description": "Находит регион по имени и меняет его статус на \"Недоступен\"",
                 "consumes": [
                     "application/json"
                 ],
@@ -339,7 +359,9 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Регионы"
+                    "Регионы"
                 ],
+                "summary": "Удалить регион",
                 "summary": "Удалить регион",
                 "parameters": [
                     {
@@ -362,18 +384,19 @@ const docTemplate = `{
         },
         "/region/delete_restore/{region_name}": {
             "get": {
-                "description": "Меняет статус региона с \"Действует\" на \"Недоступен\" и обратно",
+                "description": "Меняет статус региона с \"Действует\" на \"Недоступен\" и наобороь",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Регионы"
+                    "Регионы"
                 ],
-                "summary": "Удалить или восстановить регион",
+                "summary": "Удаляет или восстанавливает регион",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Название региона",
+                        "description": "Имя региона",
                         "name": "region_name",
                         "in": "path",
                         "required": true
@@ -391,7 +414,7 @@ const docTemplate = `{
         },
         "/region/edit": {
             "put": {
-                "description": "Находит регион по имени и обновляет перечисленные поля",
+                "description": "Находит регион по имени и обновляет его поля",
                 "consumes": [
                     "application/json"
                 ],
@@ -400,11 +423,12 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Регионы"
+                    "Регионы"
                 ],
-                "summary": "Редактировать регион",
+                "summary": "Отредактировать регион",
                 "parameters": [
                     {
-                        "description": "Данные редактируемого региона (должны содержать имя региона или его id)",
+                        "description": "Новые данные изменяемого региона (должно быть имя региона или его id)",
                         "name": "region",
                         "in": "body",
                         "required": true,
@@ -425,18 +449,20 @@ const docTemplate = `{
         },
         "/region/{region}": {
             "get": {
-                "description": "Возвращает данные региона с переданным названием",
+                "description": "Возвращает регион по имени",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Регионы"
+                    "Регионы"
                 ],
+                "summary": "Получить регион",
                 "summary": "Получить регион",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Название региона",
+                        "description": "Имя региона",
                         "name": "region",
                         "in": "path",
                         "required": true
@@ -454,7 +480,6 @@ const docTemplate = `{
         },
         "/regions": {
             "get": {
-                "description": "Returns all existing regions",
                 "consumes": [
                     "application/json"
                 ],
@@ -463,24 +488,25 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Регионы"
+                    "Регионы"
                 ],
-                "summary": "Get all existing regions",
+                "summary": "Получить все регионы",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Regions name pattern",
+                        "description": "Паттерн имени региона",
                         "name": "name_pattern",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Regions district",
+                        "description": "Округ",
                         "name": "district",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Regions status (Действует/Недействителен)",
+                        "description": "Статус региона (Действует/Недействителен)",
                         "name": "status",
                         "in": "query"
                     }
@@ -497,7 +523,7 @@ const docTemplate = `{
         },
         "/register": {
             "post": {
-                "description": "Добавляет в БД нового пользователя",
+                "description": "Добавляет нового пользователя в БД",
                 "consumes": [
                     "application/json"
                 ],
@@ -506,11 +532,13 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Аутентификация"
+                    "Аутентификация"
                 ],
+                "summary": "Зарегистрировать нового пользователя",
                 "summary": "Зарегистрировать нового пользователя",
                 "parameters": [
                     {
-                        "description": "Данные для регистрации",
+                        "description": "Тело запроса",
                         "name": "request_body",
                         "in": "body",
                         "required": true,
@@ -732,6 +760,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "127.0.0.1:8000",
 	BasePath:         "/",
 	Schemes:          []string{"http"},
+	Title:            "Заявки контроля маршрутов БПЛА",
+	Description:      "",
 	Title:            "Заявки контроля маршрутов БПЛА",
 	Description:      "",
 	InfoInstanceName: "swagger",
