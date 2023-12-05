@@ -45,7 +45,6 @@ type loginReq struct {
 }
 
 type loginResp struct {
-	Login       string `json:"login"`
 	ExpiresIn   int    `json:"expires_in"`
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
@@ -549,7 +548,6 @@ func (a *Application) login(c *gin.Context) {
 		c.SetCookie("drones-api-token", "Bearer "+strToken, 3600000000000, "", "", true, true)
 
 		c.JSON(http.StatusOK, loginResp{
-			Login:       user.Name,
 			ExpiresIn:   3600000000000,
 			AccessToken: strToken,
 			TokenType:   "Bearer",

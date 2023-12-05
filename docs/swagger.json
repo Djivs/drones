@@ -13,11 +13,7 @@
     "paths": {
         "/book": {
             "put": {
-<<<<<<< HEAD
                 "description": "Создаёт новую заявку и добавляет в неё регион",
-=======
-                "description": "Создаёт новую заявку и связывает её с регионом",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "consumes": [
                     "application/json"
                 ],
@@ -30,11 +26,7 @@
                 "summary": "Забронировать регион",
                 "parameters": [
                     {
-<<<<<<< HEAD
                         "description": "Параметры запроса на бронирование",
-=======
-                        "description": "Параметры бронирования",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                         "name": "Body",
                         "in": "body",
                         "required": true,
@@ -55,11 +47,7 @@
         },
         "/flight": {
             "get": {
-<<<<<<< HEAD
                 "description": "Возвращает заяввку с указанными параметрами",
-=======
-                "description": "Возвращает заявку с переданными параметрами",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "consumes": [
                     "application/json"
                 ],
@@ -71,6 +59,12 @@
                 ],
                 "summary": "Получить заявку",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Статус заявки",
+                        "name": "status",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "description": "Статус заявки",
@@ -90,7 +84,7 @@
         },
         "/flight/delete/{flight_id}": {
             "put": {
-                "description": "Меняет статус заявки на \"Удалён\"",
+                "description": "Меняет статус заявки на \"Удалён\"\nМеняет статус заявки на \"Удалён\"",
                 "consumes": [
                     "application/json"
                 ],
@@ -98,10 +92,18 @@
                     "application/json"
                 ],
                 "tags": [
+                    "Заявки",
                     "Заявки"
                 ],
                 "summary": "Удалить заявку",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id заявки",
+                        "name": "flight_id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "id заявки",
@@ -122,11 +124,7 @@
         },
         "/flight/edit": {
             "put": {
-<<<<<<< HEAD
                 "description": "Находит заявку и обновляет её поля",
-=======
-                "description": "Находит заявку и редактирует её поля",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "consumes": [
                     "application/json"
                 ],
@@ -136,12 +134,16 @@
                 "tags": [
                     "Заявки"
                 ],
-<<<<<<< HEAD
                 "summary": "Отредактировать заявку",
-=======
-                "summary": "Редактировать заявку",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "parameters": [
+                    {
+                        "description": "Заявка",
+                        "name": "flight",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/ds.Flight"
+                        }
+                    },
                     {
                         "description": "Заявка",
                         "name": "flight",
@@ -171,6 +173,7 @@
                     "application/json"
                 ],
                 "tags": [
+                    "Заявки",
                     "Заявки"
                 ],
                 "summary": "Изменить статус заявки",
@@ -197,10 +200,6 @@
         },
         "/flight_to_region/delete": {
             "put": {
-<<<<<<< HEAD
-=======
-                "description": "Удаляет запись в таблице fligt_to_region",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "consumes": [
                     "application/json"
                 ],
@@ -213,11 +212,7 @@
                 "summary": "Удаляет связь региона с заявкой",
                 "parameters": [
                     {
-<<<<<<< HEAD
                         "description": "Тело запроса",
-=======
-                        "description": "Параметры запроса",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                         "name": "request_body",
                         "in": "body",
                         "required": true,
@@ -238,11 +233,7 @@
         },
         "/flights": {
             "get": {
-<<<<<<< HEAD
                 "description": "Возвращает список заявок",
-=======
-                "description": "Возвращает список всех доступных заявок",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "produces": [
                     "application/json"
                 ],
@@ -253,11 +244,7 @@
                 "parameters": [
                     {
                         "type": "string",
-<<<<<<< HEAD
                         "description": "Статус заявок",
-=======
-                        "description": "Статус заявки",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                         "name": "status",
                         "in": "query"
                     }
@@ -274,11 +261,7 @@
         },
         "/login": {
             "post": {
-<<<<<<< HEAD
                 "description": "Возвращает jwt токен",
-=======
-                "description": "Проверяет данные для входа и в случае успеха возвращает токен для входа",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "consumes": [
                     "application/json"
                 ],
@@ -288,17 +271,10 @@
                 "tags": [
                     "Аутентификация"
                 ],
-<<<<<<< HEAD
                 "summary": "Войти в систему",
                 "parameters": [
                     {
                         "description": "Тело запроса на вход",
-=======
-                "summary": "Вход в систему",
-                "parameters": [
-                    {
-                        "description": "Данные для входа",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                         "name": "request_body",
                         "in": "body",
                         "required": true,
@@ -338,11 +314,7 @@
         },
         "/region/add": {
             "put": {
-<<<<<<< HEAD
                 "description": "Создаёт новый регион с праметрами, описанными в json'е",
-=======
-                "description": "Создаёт новый регион с параметрами, описанными в json",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "consumes": [
                     "application/json"
                 ],
@@ -352,17 +324,10 @@
                 "tags": [
                     "Регионы"
                 ],
-<<<<<<< HEAD
                 "summary": "Добавить регион в БД",
                 "parameters": [
                     {
                         "description": "Данные нового регионы",
-=======
-                "summary": "Добавляет новый регион в БД",
-                "parameters": [
-                    {
-                        "description": "Характеристики нового региона",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                         "name": "region",
                         "in": "body",
                         "required": true,
@@ -373,11 +338,7 @@
                 ],
                 "responses": {
                     "201": {
-<<<<<<< HEAD
                         "description": "Регион был успешно создан",
-=======
-                        "description": "Регион успешно добавлен",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                         "schema": {
                             "type": "string"
                         }
@@ -387,11 +348,7 @@
         },
         "/region/delete/{region_name}": {
             "put": {
-<<<<<<< HEAD
                 "description": "Находит регион по имени и меняет его статус на \"Недоступен\"",
-=======
-                "description": "Находит регион по его названию и меняет его статус на \"Недоступен\"",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "consumes": [
                     "application/json"
                 ],
@@ -423,30 +380,18 @@
         },
         "/region/delete_restore/{region_name}": {
             "get": {
-<<<<<<< HEAD
                 "description": "Меняет статус региона с \"Действует\" на \"Недоступен\" и наобороь",
-=======
-                "description": "Меняет статус региона с \"Действует\" на \"Недоступен\" и обратно",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Регионы"
                 ],
-<<<<<<< HEAD
                 "summary": "Удаляет или восстанавливает регион",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Имя региона",
-=======
-                "summary": "Удалить или восстановить регион",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Название региона",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                         "name": "region_name",
                         "in": "path",
                         "required": true
@@ -464,11 +409,7 @@
         },
         "/region/edit": {
             "put": {
-<<<<<<< HEAD
                 "description": "Находит регион по имени и обновляет его поля",
-=======
-                "description": "Находит регион по имени и обновляет перечисленные поля",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "consumes": [
                     "application/json"
                 ],
@@ -478,17 +419,10 @@
                 "tags": [
                     "Регионы"
                 ],
-<<<<<<< HEAD
                 "summary": "Отредактировать регион",
                 "parameters": [
                     {
                         "description": "Новые данные изменяемого региона (должно быть имя региона или его id)",
-=======
-                "summary": "Редактировать регион",
-                "parameters": [
-                    {
-                        "description": "Данные редактируемого региона (должны содержать имя региона или его id)",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                         "name": "region",
                         "in": "body",
                         "required": true,
@@ -509,11 +443,7 @@
         },
         "/region/{region}": {
             "get": {
-<<<<<<< HEAD
                 "description": "Возвращает регион по имени",
-=======
-                "description": "Возвращает данные региона с переданным названием",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "produces": [
                     "application/json"
                 ],
@@ -524,11 +454,7 @@
                 "parameters": [
                     {
                         "type": "string",
-<<<<<<< HEAD
                         "description": "Имя региона",
-=======
-                        "description": "Название региона",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                         "name": "region",
                         "in": "path",
                         "required": true
@@ -588,11 +514,7 @@
         },
         "/register": {
             "post": {
-<<<<<<< HEAD
                 "description": "Добавляет нового пользователя в БД",
-=======
-                "description": "Добавляет в БД нового пользователя",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                 "consumes": [
                     "application/json"
                 ],
@@ -605,11 +527,7 @@
                 "summary": "Зарегистрировать нового пользователя",
                 "parameters": [
                     {
-<<<<<<< HEAD
                         "description": "Тело запроса",
-=======
-                        "description": "Данные для регистрации",
->>>>>>> 3f1bd6bc496c9f3e19435f91d4cdba1db30eee2c
                         "name": "request_body",
                         "in": "body",
                         "required": true,
@@ -658,11 +576,11 @@
         "app.registerReq": {
             "type": "object",
             "properties": {
-                "name": {
+                "login": {
                     "description": "лучше назвать то же самое что login",
                     "type": "string"
                 },
-                "pass": {
+                "password": {
                     "type": "string"
                 }
             }
@@ -776,7 +694,7 @@
                 "id": {
                     "type": "integer"
                 },
-                "image": {
+                "imageName": {
                     "type": "string"
                 },
                 "name": {

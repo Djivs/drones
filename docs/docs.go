@@ -17,7 +17,6 @@ const docTemplate = `{
     "paths": {
         "/book": {
             "put": {
-                "description": "Создаёт новую заявку и связывает её с регионом",
                 "description": "Создаёт новую заявку и добавляет в неё регион",
                 "consumes": [
                     "application/json"
@@ -27,9 +26,7 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Бронирование"
-                    "Бронирование"
                 ],
-                "summary": "Забронировать регион",
                 "summary": "Забронировать регион",
                 "parameters": [
                     {
@@ -63,14 +60,17 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Заявки"
-                    "Заявки"
                 ],
-                "summary": "Получить заявку",
                 "summary": "Получить заявку",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Статус заявки",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Статус заявки",
                         "name": "status",
                         "in": "query"
@@ -88,8 +88,7 @@ const docTemplate = `{
         },
         "/flight/delete/{flight_id}": {
             "put": {
-                "description": "Меняет статус заявки на \"Удалён\"",
-                "description": "Меняет статус заявки на \"Удалён\"",
+                "description": "Меняет статус заявки на \"Удалён\"\nМеняет статус заявки на \"Удалён\"",
                 "consumes": [
                     "application/json"
                 ],
@@ -97,15 +96,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Заявки"
+                    "Заявки",
                     "Заявки"
                 ],
-                "summary": "Удалить заявку",
                 "summary": "Удалить заявку",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "id заявки",
+                        "name": "flight_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
                         "description": "id заявки",
                         "name": "flight_id",
                         "in": "path",
@@ -133,12 +137,18 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Заявки"
-                    "Заявки"
                 ],
                 "summary": "Отредактировать заявку",
                 "parameters": [
                     {
                         "description": "Заявка",
+                        "name": "flight",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/ds.Flight"
+                        }
+                    },
+                    {
                         "description": "Заявка",
                         "name": "flight",
                         "in": "body",
@@ -167,7 +177,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Заявки"
+                    "Заявки",
                     "Заявки"
                 ],
                 "summary": "Изменить статус заявки",
@@ -202,9 +212,7 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Заявки"
-                    "Заявки"
                 ],
-                "summary": "Удаляет связь региона с заявкой",
                 "summary": "Удаляет связь региона с заявкой",
                 "parameters": [
                     {
@@ -235,9 +243,7 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Заявки"
-                    "Заявки"
                 ],
-                "summary": "Получить заявки",
                 "summary": "Получить заявки",
                 "parameters": [
                     {
@@ -267,7 +273,6 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Аутентификация"
                     "Аутентификация"
                 ],
                 "summary": "Войти в систему",
@@ -302,9 +307,7 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Аутентификация"
-                    "Аутентификация"
                 ],
-                "summary": "Выйти из системы",
                 "summary": "Выйти из системы",
                 "responses": {
                     "200": {
@@ -323,7 +326,6 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Регионы"
                     "Регионы"
                 ],
                 "summary": "Добавить регион в БД",
@@ -359,9 +361,7 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Регионы"
-                    "Регионы"
                 ],
-                "summary": "Удалить регион",
                 "summary": "Удалить регион",
                 "parameters": [
                     {
@@ -389,7 +389,6 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Регионы"
                     "Регионы"
                 ],
                 "summary": "Удаляет или восстанавливает регион",
@@ -423,7 +422,6 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Регионы"
-                    "Регионы"
                 ],
                 "summary": "Отредактировать регион",
                 "parameters": [
@@ -455,9 +453,7 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Регионы"
-                    "Регионы"
                 ],
-                "summary": "Получить регион",
                 "summary": "Получить регион",
                 "parameters": [
                     {
@@ -487,7 +483,6 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Регионы"
                     "Регионы"
                 ],
                 "summary": "Получить все регионы",
@@ -532,9 +527,7 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Аутентификация"
-                    "Аутентификация"
                 ],
-                "summary": "Зарегистрировать нового пользователя",
                 "summary": "Зарегистрировать нового пользователя",
                 "parameters": [
                     {
@@ -587,11 +580,11 @@ const docTemplate = `{
         "app.registerReq": {
             "type": "object",
             "properties": {
-                "name": {
+                "login": {
                     "description": "лучше назвать то же самое что login",
                     "type": "string"
                 },
-                "pass": {
+                "password": {
                     "type": "string"
                 }
             }
@@ -705,7 +698,7 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "image": {
+                "imageName": {
                     "type": "string"
                 },
                 "name": {
@@ -760,8 +753,6 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "127.0.0.1:8000",
 	BasePath:         "/",
 	Schemes:          []string{"http"},
-	Title:            "Заявки контроля маршрутов БПЛА",
-	Description:      "",
 	Title:            "Заявки контроля маршрутов БПЛА",
 	Description:      "",
 	InfoInstanceName: "swagger",
