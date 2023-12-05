@@ -510,7 +510,6 @@ func (a *Application) login(c *gin.Context) {
 	err := json.NewDecoder(c.Request.Body).Decode(req)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
-
 		return
 	}
 
@@ -554,6 +553,8 @@ func (a *Application) login(c *gin.Context) {
 			AccessToken: strToken,
 			TokenType:   "Bearer",
 		})
+
+		return
 	}
 
 	c.AbortWithStatus(http.StatusForbidden)
