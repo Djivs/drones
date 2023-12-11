@@ -333,18 +333,15 @@ func (a *Application) get_flights(c *gin.Context) {
 // @Produce      json
 // @Success      302  {object}  string
 // @Param status query string false "Статус заявки"
-// @Param status query string false "Статус заявки"
+// @Param id query int false "ID заявки"
 // @Router       /flight [get]
 func (a *Application) get_flight(c *gin.Context) {
 	status := c.Query("status")
+	id, _ := strconv.ParseUint(c.Query("flight_id"), 10, 64)
 
 	flight := &ds.Flight{
 		Status: status,
-	}
-
-	if err := c.BindJSON(&flight); err != nil {
-		c.Error(err)
-		return
+		ID:     uint(id),
 	}
 
 	found_flight, err := a.repo.FindFlight(flight)
