@@ -46,6 +46,7 @@ type loginReq struct {
 
 type loginResp struct {
 	Login       string `json:"login"`
+	Role        int    `json:"role"`
 	ExpiresIn   int    `json:"expires_in"`
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
@@ -549,6 +550,7 @@ func (a *Application) login(c *gin.Context) {
 
 		c.JSON(http.StatusOK, loginResp{
 			Login:       user.Name,
+			Role:        int(user.Role),
 			ExpiresIn:   3600000000000,
 			AccessToken: strToken,
 			TokenType:   "Bearer",
