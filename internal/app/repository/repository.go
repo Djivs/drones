@@ -263,6 +263,52 @@ func (r *Repository) EditFlight(flight *ds.Flight) error {
 	return r.db.Model(&ds.Flight{}).Where("id = ?", flight.ID).Updates(flight).Error
 }
 
+func (r *Repository) Book(requestBody ds.BookRequestBody, userUUID uuid.UUID) error {
+	var region_ids []int
+	for _, regionName := range requestBody.Regions {
+		region_id, err := r.GetRegionID(regionName)
+		if err != nil {
+			return err
+		}
+		region_ids = append(region_ids, region_id)
+	}
+
+	current_date := datatypes.Date(time.Now())
+	takeoff_date, err := time.Parse(time.RFC3339, requestBody.TakeoffDate+"T00:00:00Z")
+	if err != nil {
+		return err
+	}
+	arrival_date, err := time.Parse(time.RFC3339, requestBody.ArrivalDate+"T00:00:00Z")
+	if err != nil {
+		return err
+	}
+
+	flight := ds.Flight{}
+	flight.TakeoffDate = datatypes.Date(takeoff_date)
+	flight.ArrivalDate = datatypes.Date(arrival_date)
+	flight.UserRefer = userUUID
+	flight.DateCreated = current_date
+
+	err = r.db.Omit("moderator_refer", "date_processed", "date_finished").Create(&flight).Error
+	if err != nil {
+		return err
+	}
+
+	for _, region_id := range region_ids {
+		flight_to_region := ds.FlightToRegion{}
+		flight_to_region.FlightRefer = int(flight.ID)
+		flight_to_region.RegionRefer = int(region_id)
+		err = r.CreateFlightToRegion(flight_to_region)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+
+}
+
 func (r *Repository) BookRegion(requestBody ds.BookRegionRequestBody, userUUID uuid.UUID) error {
 	region_id, err := r.GetRegionID(requestBody.RegionName)
 	if err != nil {

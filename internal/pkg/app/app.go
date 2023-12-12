@@ -93,7 +93,8 @@ func (a *Application) StartServer() {
 
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).GET("flight", a.get_flight)
 	a.r.GET("flights", a.get_flights)
-	a.r.PUT("book", a.book_region)
+	a.r.PUT("book", a.book)
+	a.r.PUT("book_region", a.book_region) // old; needs to be deleted
 	a.r.PUT("flight/status_change", a.flight_status_change)
 
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
@@ -263,6 +264,33 @@ func (a *Application) delete_restore_region(c *gin.Context) {
 	c.String(http.StatusFound, "Статус региона был успешно изменён")
 }
 
+func (a *Application) book(c *gin.Context) {
+	var request_body ds.BookRequestBody
+
+	if err := c.BindJSON(&request_body); err != nil {
+		c.String(http.StatusBadGateway, "Не могу распознать json")
+		return
+	}
+
+	_userUUID, ok := c.Get("userUUID")
+
+	if !ok {
+		c.String(http.StatusInternalServerError, "Вы сначала должны залогиниться")
+		return
+	}
+
+	userUUID := _userUUID.(uuid.UUID)
+	err := a.repo.Book(request_body, userUUID)
+
+	if err != nil {
+		c.Error(err)
+		c.String(http.StatusNotFound, "Не могу забронировать регион")
+		return
+	}
+
+	c.String(http.StatusCreated, "Бронирование прошло успешно!")
+}
+
 // @Summary      Забронировать регион
 // @Description  Создаёт новую заявку и добавляет в неё регион
 // @Tags Бронирование
@@ -270,20 +298,19 @@ func (a *Application) delete_restore_region(c *gin.Context) {
 // @Produce      json
 // @Success      302  {object}  string
 // @Param Body body ds.BookRegionRequestBody true "Параметры запроса на бронирование"
-// @Router       /book [put]
+// @Router       /book_region [put]
 func (a *Application) book_region(c *gin.Context) {
 	var request_body ds.BookRegionRequestBody
 
 	if err := c.BindJSON(&request_body); err != nil {
-		c.String(http.StatusBadGateway, "Cant' parse json")
+		c.String(http.StatusBadGateway, "Не могу распознать json")
 		return
 	}
 
 	_userUUID, ok := c.Get("userUUID")
 
 	if !ok {
-		c.String(http.StatusInternalServerError, "You should login first")
-
+		c.String(http.StatusInternalServerError, "Вы сначала должны залогиниться")
 		return
 	}
 
