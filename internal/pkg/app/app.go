@@ -96,14 +96,15 @@ func (a *Application) StartServer() {
 	a.r.PUT("book", a.book)
 	a.r.PUT("book_region", a.book_region) // old; needs to be deleted
 	a.r.PUT("flight/status_change", a.flight_status_change)
+	a.r.GET("flight_regions/:flight_id", a.flight_regions)
 
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("flight/delete/:flight_id", a.delete_flight)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("flight_to_region/delete", a.delete_flight_to_region)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("flight/edit", a.edit_flight)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete/:region_name", a.delete_region)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/edit", a.edit_region)
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/add", a.add_region)
+	a.r.PUT("flight/delete/:flight_id", a.delete_flight)
+	a.r.PUT("flight_to_region/delete", a.delete_flight_to_region)
+	a.r.PUT("flight/edit", a.edit_flight)
+	a.r.PUT("region/delete/:region_name", a.delete_region)
+	a.r.PUT("region/edit", a.edit_region)
+	a.r.PUT("region/add", a.add_region)
 
 	a.r.Run(":8000")
 
@@ -406,6 +407,24 @@ func (a *Application) edit_flight(c *gin.Context) {
 	}
 
 	c.String(http.StatusCreated, "Заявка была успешно обновлена")
+}
+
+func (a *Application) flight_regions(c *gin.Context) { // нужно добавить проверку на авторизацию пользователя
+	flight_id, err := strconv.Atoi(c.Param("flight_id"))
+	if err != nil {
+		c.String(http.StatusBadRequest, "Не могу разобрать id полёта!")
+		return
+	}
+
+	regions, err := a.repo.GetFlightRegions(flight_id)
+	log.Println(regions)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Не получается достать регионы связанные с полётом!")
+		return
+	}
+
+	c.JSON(http.StatusOK, regions)
+
 }
 
 // @Summary Изменить статус заявки

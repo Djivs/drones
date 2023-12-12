@@ -288,6 +288,7 @@ func (r *Repository) Book(requestBody ds.BookRequestBody, userUUID uuid.UUID) er
 	flight.ArrivalDate = datatypes.Date(arrival_date)
 	flight.UserRefer = userUUID
 	flight.DateCreated = current_date
+	flight.Status = "Черновик"
 
 	err = r.db.Omit("moderator_refer", "date_processed", "date_finished").Create(&flight).Error
 	if err != nil {
@@ -354,6 +355,32 @@ func (r *Repository) GetFlightStatus(id int) (string, error) {
 	}
 
 	return result.Status, nil
+}
+
+func (r *Repository) GetFlightRegions(id int) ([]ds.Region, error) {
+	flight_to_regions := []ds.FlightToRegion{}
+
+	err := r.db.Model(&ds.FlightToRegion{}).Where("flight_refer = ?", id).Find(&flight_to_regions).Error
+	if err != nil {
+		return []ds.Region{}, err
+	}
+
+	var regions []ds.Region
+	for _, flight_to_region := range flight_to_regions {
+		region, err := r.GetRegionByID(flight_to_region.RegionRefer)
+		if err != nil {
+			return []ds.Region{}, err
+		}
+		for _, ele := range regions {
+			if ele == *region {
+				continue
+			}
+		}
+		regions = append(regions, *region)
+	}
+
+	return regions, nil
+
 }
 
 func (r *Repository) SetFlightModerator(flightID int, moderatorUUID uuid.UUID) error {
