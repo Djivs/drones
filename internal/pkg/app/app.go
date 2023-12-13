@@ -362,13 +362,16 @@ func (a *Application) edit_flight(c *gin.Context) {
 		return
 	}
 
+	_userUUID, _ := c.Get("userUUID")
+	userUUID := _userUUID.(uuid.UUID)
+
 	var flight = ds.Flight{}
 	flight.ArrivalDate = datatypes.Date(requestBody.ArrivalDate)
 	flight.TakeoffDate = datatypes.Date(requestBody.TakeoffDate)
 	flight.ID = uint(requestBody.FlightID)
 	flight.Status = requestBody.Status
 
-	err := a.repo.EditFlight(&flight)
+	err := a.repo.EditFlight(&flight, userUUID)
 
 	if err != nil {
 		c.Error(err)

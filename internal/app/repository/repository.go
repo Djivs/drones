@@ -259,7 +259,9 @@ func (r *Repository) EditRegion(region *ds.Region) error {
 	return r.db.Model(&ds.Region{}).Where("name = ?", region.Name).Updates(region).Error
 }
 
-func (r *Repository) EditFlight(flight *ds.Flight) error {
+func (r *Repository) EditFlight(flight *ds.Flight, moderatorUUID uuid.UUID) error {
+	flight.DateProcessed = datatypes.Date(time.Now())
+	flight.ModeratorRefer = moderatorUUID
 	return r.db.Model(&ds.Flight{}).Where("id = ?", flight.ID).Updates(flight).Error
 }
 
@@ -395,7 +397,8 @@ func (r *Repository) SetFlightRegions(flightID int, regions []string) error {
 			FlightRefer: flightID,
 			RegionRefer: region_id,
 		}
-		err := r.db.Model(&ds.FlightToRegion{}).Create(newLink).Error
+
+		err := r.db.Model(&ds.FlightToRegion{}).Create(&newLink).Error
 		if err != nil {
 			return nil
 		}
