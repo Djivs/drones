@@ -310,43 +310,6 @@ func (r *Repository) Book(requestBody ds.BookRequestBody, userUUID uuid.UUID) er
 
 }
 
-func (r *Repository) BookRegion(requestBody ds.BookRegionRequestBody, userUUID uuid.UUID) error {
-	region_id, err := r.GetRegionID(requestBody.RegionName)
-	if err != nil {
-		return err
-	}
-
-	current_date := datatypes.Date(time.Now())
-	takeoff_date, err := time.Parse(time.RFC3339, requestBody.TakeoffDate+"T00:00:00Z")
-	if err != nil {
-		return err
-	}
-	arrival_date, err := time.Parse(time.RFC3339, requestBody.ArrivalDate+"T00:00:00Z")
-	if err != nil {
-		return err
-	}
-
-	flight := ds.Flight{}
-	flight.TakeoffDate = datatypes.Date(takeoff_date)
-	flight.ArrivalDate = datatypes.Date(arrival_date)
-	flight.UserRefer = userUUID
-	flight.DateCreated = current_date
-
-	err = r.db.Omit("moderator_refer", "date_processed", "date_finished").Create(&flight).Error
-
-	if err != nil {
-		return err
-	}
-
-	flight_to_region := ds.FlightToRegion{}
-	flight_to_region.FlightRefer = int(flight.ID)
-	flight_to_region.RegionRefer = int(region_id)
-	err = r.CreateFlightToRegion(flight_to_region)
-
-	return err
-
-}
-
 func (r *Repository) GetFlightStatus(id int) (string, error) {
 	var result ds.Flight
 	err := r.db.Where("id = ?", id).First(&result).Error
@@ -381,6 +344,64 @@ func (r *Repository) GetFlightRegions(id int) ([]ds.Region, error) {
 
 	return regions, nil
 
+}
+
+func (r *Repository) SetFlightRegions(flightID int, regions []string) error {
+	var region_ids []int
+	for _, region := range regions {
+		region_id, err := r.GetRegionID(region)
+		if err != nil {
+			return err
+		}
+
+		for _, ele := range region_ids {
+			if ele == region_id {
+				continue
+			}
+		}
+
+		region_ids = append(region_ids, region_id)
+	}
+
+	var existing_links []ds.FlightToRegion
+	err := r.db.Model(&ds.FlightToRegion{}).Where("flight_refer = ?", flightID).Find(&existing_links).Error
+	if err != nil {
+		return err
+	}
+
+	for _, link := range existing_links {
+		regionFound := false
+		regionIndex := -1
+		for index, ele := range region_ids {
+			if ele == link.RegionRefer {
+				regionFound = true
+				regionIndex = index
+				break
+			}
+		}
+
+		if regionFound {
+			region_ids = append(region_ids[:regionIndex], region_ids[regionIndex+1:]...)
+		} else {
+			err := r.db.Model(&ds.FlightToRegion{}).Delete(&link).Error
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	for _, region_id := range region_ids {
+		newLink := ds.FlightToRegion{
+			FlightRefer: flightID,
+			RegionRefer: region_id,
+		}
+		err := r.db.Model(&ds.FlightToRegion{}).Create(newLink).Error
+		if err != nil {
+			return nil
+		}
+	}
+
+	return nil
 }
 
 func (r *Repository) SetFlightModerator(flightID int, moderatorUUID uuid.UUID) error {

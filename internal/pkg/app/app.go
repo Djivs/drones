@@ -23,6 +23,7 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -94,9 +95,9 @@ func (a *Application) StartServer() {
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).GET("flight", a.get_flight)
 	a.r.GET("flights", a.get_flights)
 	a.r.PUT("book", a.book)
-	a.r.PUT("book_region", a.book_region) // old; needs to be deleted
 	a.r.PUT("flight/status_change", a.flight_status_change)
 	a.r.GET("flight_regions/:flight_id", a.flight_regions)
+	a.r.PUT("flight/set_regions", a.set_flight_regions)
 
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
 	a.r.PUT("flight/delete/:flight_id", a.delete_flight)
@@ -292,43 +293,6 @@ func (a *Application) book(c *gin.Context) {
 	c.String(http.StatusCreated, "Бронирование прошло успешно!")
 }
 
-// @Summary      Забронировать регион
-// @Description  Создаёт новую заявку и добавляет в неё регион
-// @Tags Бронирование
-// @Accept json
-// @Produce      json
-// @Success      302  {object}  string
-// @Param Body body ds.BookRegionRequestBody true "Параметры запроса на бронирование"
-// @Router       /book_region [put]
-func (a *Application) book_region(c *gin.Context) {
-	var request_body ds.BookRegionRequestBody
-
-	if err := c.BindJSON(&request_body); err != nil {
-		c.String(http.StatusBadGateway, "Не могу распознать json")
-		return
-	}
-
-	_userUUID, ok := c.Get("userUUID")
-
-	if !ok {
-		c.String(http.StatusInternalServerError, "Вы сначала должны залогиниться")
-		return
-	}
-
-	userUUID := _userUUID.(uuid.UUID)
-
-	err := a.repo.BookRegion(request_body, userUUID)
-
-	if err != nil {
-		c.Error(err)
-		c.String(http.StatusNotFound, "Can't book region")
-		return
-	}
-
-	c.String(http.StatusCreated, "Region was successfully booked")
-
-}
-
 // @Summary      Получить заявки
 // @Description  Возвращает список заявок
 // @Tags         Заявки
@@ -389,17 +353,22 @@ func (a *Application) get_flight(c *gin.Context) {
 // @Produce      json
 // @Success      201  {object}  string
 // @Param flight body ds.Flight false "Заявка"
-// @Param flight body ds.Flight false "Заявка"
 // @Router       /flight/edit [put]
 func (a *Application) edit_flight(c *gin.Context) {
-	var flight *ds.Flight
+	var requestBody ds.EditFlightRequestBody
 
-	if err := c.BindJSON(flight); err != nil {
-		c.Error(err)
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.String(http.StatusBadRequest, "Передан плохой json")
 		return
 	}
 
-	err := a.repo.EditFlight(flight)
+	var flight = ds.Flight{}
+	flight.ArrivalDate = datatypes.Date(requestBody.ArrivalDate)
+	flight.TakeoffDate = datatypes.Date(requestBody.TakeoffDate)
+	flight.ID = uint(requestBody.FlightID)
+	flight.Status = requestBody.Status
+
+	err := a.repo.EditFlight(&flight)
 
 	if err != nil {
 		c.Error(err)
@@ -424,6 +393,23 @@ func (a *Application) flight_regions(c *gin.Context) { // нужно добав�
 	}
 
 	c.JSON(http.StatusOK, regions)
+
+}
+
+func (a *Application) set_flight_regions(c *gin.Context) {
+	var requestBody ds.SetFlightRegionsRequestBody
+
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.String(http.StatusBadRequest, "Не получается распознать json запрос")
+		return
+	}
+
+	err := a.repo.SetFlightRegions(requestBody.FlightID, requestBody.Regions)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Не получилось задать регионы для заявки\n"+err.Error())
+	}
+
+	c.String(http.StatusCreated, "Регионы заявки успешно заданы!")
 
 }
 
