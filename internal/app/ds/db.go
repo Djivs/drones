@@ -1,6 +1,8 @@
 package ds
 
 import (
+	"encoding/json"
+
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 )
@@ -11,12 +13,12 @@ type Region struct {
 	Name           string `gorm:"type:varchar(50);unique;not null"`
 	Details        string `gorm:"type:text"`
 	Status         string `gorm:"not null"`
-	AreaKm         float64
-	Population     int
+	AreaKm         json.Number
+	Population     json.Number
 	HeadName       string `gorm:"type:varchar(250)"`
 	HeadEmail      string `gorm:"type:varchar(50)"`
 	HeadPhone      string `gorm:"type:varchar(50)"`
-	AverageHeightM float64
+	AverageHeightM json.Number
 	ImageName      string
 }
 
@@ -32,6 +34,7 @@ type Flight struct {
 	User           User           `gorm:"foreignKey:UserRefer;references:UUID;not null"`
 	TakeoffDate    datatypes.Date `gorm:"not null" swaggertype:"primitive,string"`
 	ArrivalDate    datatypes.Date `gorm:"not null" swaggertype:"primitive,string"`
+	AllowedHours   string         `swaggertype:"primitive,string"`
 }
 
 type FlightToRegion struct {
