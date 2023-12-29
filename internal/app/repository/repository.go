@@ -140,12 +140,20 @@ func (r *Repository) GetAllRegions(name_pattern string, district string, status 
 	return regions, nil
 }
 
-func (r *Repository) GetAllFlights(status string, roleNumber role.Role, userUUID uuid.UUID) ([]ds.Flight, error) {
+func (r *Repository) GetAllFlights(status string, startDate string, endDate string, roleNumber role.Role, userUUID uuid.UUID) ([]ds.Flight, error) {
 	flights := []ds.Flight{}
 
 	var tx *gorm.DB = r.db
 	if status != "" {
 		tx = tx.Where("status = ?", status)
+	}
+
+	if startDate != "" {
+		tx = tx.Where("date_created >= ?", startDate)
+	}
+
+	if endDate != "" {
+		tx = tx.Where("date_created <= ?", endDate)
 	}
 
 	if roleNumber == role.User {

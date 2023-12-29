@@ -308,8 +308,10 @@ func (a *Application) get_flights(c *gin.Context) {
 	userUUID := _userUUID.(uuid.UUID)
 
 	status := c.Query("status")
+	startDate := c.Query("startDate")
+	endDate := c.Query("endDate")
 
-	flights, err := a.repo.GetAllFlights(status, roleNumber, userUUID)
+	flights, err := a.repo.GetAllFlights(status, startDate, endDate, roleNumber, userUUID)
 	if err != nil {
 		c.Error(err)
 		return
