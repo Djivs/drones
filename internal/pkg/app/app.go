@@ -23,6 +23,8 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"gorm.io/datatypes"
 
 	swaggerfiles "github.com/swaggo/files"
@@ -101,6 +103,7 @@ func (a *Application) StartServer() {
 	a.r.PUT("flight/set_regions", a.set_flight_regions)
 
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
+	a.r.POST("region/add_image/:region_id", a.add_image)
 	a.r.PUT("flight/delete/:flight_id", a.delete_flight)
 	a.r.PUT("flight_to_region/delete", a.delete_flight_to_region)
 	a.r.PUT("flight/edit", a.edit_flight)
@@ -704,6 +707,55 @@ func (a *Application) logout(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func (a *Application) add_image(c *gin.Context) {
+	region_id, err := strconv.Atoi(c.Param("region_id"))
+	if err != nil {
+		c.String(http.StatusBadRequest, "Не получается прочитать ID региона")
+		log.Println("Не получается прочитать ID региона")
+		return
+	}
+
+	image, header, err := c.Request.FormFile("file")
+
+	if err != nil {
+		c.String(http.StatusBadRequest, "Не получается распознать картинку")
+		log.Println("Не получается распознать картинку")
+		return
+	}
+	defer image.Close()
+
+	minioClient, err := minio.New("127.0.0.1:9000", &minio.Options{
+		Creds:  credentials.NewStaticV4("minioadmin", "minioadmin", ""),
+		Secure: false,
+	})
+
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Не получается подключиться к minio")
+		log.Println("Не получается подключиться к minio")
+		return
+	}
+
+	objectName := header.Filename
+	_, err = minioClient.PutObject(c.Request.Context(), "regionimages", objectName, image, header.Size, minio.PutObjectOptions{})
+
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Не получилось загрузить картинку в minio")
+		log.Println("Не получилось загрузить картинку в minio")
+		return
+	}
+
+	err = a.repo.SetRegionImage(region_id, objectName)
+
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Не получается обновить картинку региона")
+		log.Println("Не получается обновить картинку региона")
+		return
+	}
+
+	c.String(http.StatusCreated, "Картинка загружена!")
+
 }
 
 func generateHashString(s string) string {

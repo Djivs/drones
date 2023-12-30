@@ -281,6 +281,10 @@ func (r *Repository) EditFlight(flight *ds.Flight, moderatorUUID uuid.UUID) erro
 	return r.db.Model(&ds.Flight{}).Where("id = ?", flight.ID).Updates(flight).Error
 }
 
+func (r *Repository) SetRegionImage(id int, image string) error {
+	return r.db.Model(&ds.Region{}).Where("id = ?", id).Update("image_name", image).Error
+}
+
 func (r *Repository) Book(requestBody ds.BookRequestBody, userUUID uuid.UUID) error {
 	var region_ids []int
 	for _, regionName := range requestBody.Regions {
