@@ -306,7 +306,7 @@ func (r *Repository) Book(requestBody ds.BookRequestBody, userUUID uuid.UUID) er
 	flight.ArrivalDate = datatypes.Date(arrival_date)
 	flight.UserRefer = userUUID
 	flight.DateCreated = current_date
-	flight.Status = "Черновик"
+	flight.Status = requestBody.Status
 
 	err = r.db.Omit("moderator_refer", "date_processed", "date_finished").Create(&flight).Error
 	if err != nil {

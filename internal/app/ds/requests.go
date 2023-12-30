@@ -6,6 +6,7 @@ type BookRequestBody struct {
 	TakeoffDate string
 	ArrivalDate string
 	Regions     []string
+	Status      string
 }
 
 type EditFlightRequestBody struct {
