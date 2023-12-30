@@ -80,12 +80,13 @@ func (a *Application) StartServer() {
 	log.Println("Server started")
 
 	a.r = gin.Default()
-	a.r.GET("regions", a.get_regions)
-	a.r.GET("region/:region", a.get_region)
 
 	// swagger
 	docs.SwaggerInfo.BasePath = "/"
 	a.r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+
+	a.r.GET("regions", a.get_regions)
+	a.r.GET("region/:region", a.get_region)
 
 	// registration & etc
 	a.r.POST("/login", a.login)
@@ -121,6 +122,7 @@ func (a *Application) StartServer() {
 // @Param district query string false "Округ"
 // @Param status query string false "Статус региона (Действует/Недействителен)"
 // @Router /regions [get]
+
 func (a *Application) get_regions(c *gin.Context) {
 	var name_pattern = c.Query("name_pattern")
 	var district = c.Query("district")
@@ -132,7 +134,29 @@ func (a *Application) get_regions(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, regions)
+	_userUUID, ok := c.Get("userUUID")
+
+	if !ok {
+		c.JSON(http.StatusOK, gin.H{
+			"regions": regions,
+		})
+		return
+	}
+
+	userUUID := _userUUID.(uuid.UUID)
+
+	draft_flight, err := a.repo.GetDraftFlight(userUUID)
+
+	if err != nil {
+		log.Println(err)
+		c.String(http.StatusInternalServerError, "Возникла ошибка при поиске заявки-черновика")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"regions":      regions,
+		"draft_flight": draft_flight,
+	})
 }
 
 // @Summary      Добавить регион в БД
@@ -345,7 +369,7 @@ func (a *Application) get_flight(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusFound, found_flight)
+	c.JSON(http.StatusOK, found_flight)
 }
 
 // @Summary      Отредактировать заявку

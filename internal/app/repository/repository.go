@@ -178,6 +178,14 @@ func (r *Repository) GetAllFlights(status string, startDate string, endDate stri
 	return flights, nil
 }
 
+func (r *Repository) GetDraftFlight(user uuid.UUID) (ds.Flight, error) {
+	flight := ds.Flight{}
+
+	err := r.db.Where("user_refer = ?", user).Find(&flight).Error
+
+	return flight, err
+}
+
 func (r *Repository) CreateRegion(region ds.Region) error {
 	return r.db.Create(&region).Error
 }
