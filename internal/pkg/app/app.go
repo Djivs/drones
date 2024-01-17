@@ -105,11 +105,12 @@ func (a *Application) StartServer() {
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
 	a.r.POST("region/add_image/:region_id", a.add_image)
 	a.r.PUT("flight/delete/:flight_id", a.delete_flight)
-	a.r.PUT("flight_to_region/delete", a.delete_flight_to_region)
+	a.r.DELETE("flight_to_region/delete", a.delete_flight_to_region)
 	a.r.PUT("flight/edit", a.edit_flight)
 	a.r.DELETE("region/delete/:region_name", a.delete_region)
 	a.r.PUT("region/edit", a.edit_region)
 	a.r.POST("region/add", a.add_region)
+	a.r.PUT("flight/set_allowed_hours", a.set_allowed_hours)
 
 	a.r.Run(":80")
 
@@ -707,6 +708,29 @@ func (a *Application) logout(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+type setAllowedHoursReq struct {
+	flightId     int
+	allowedHours string
+}
+
+func (a *Application) set_allowed_hours(c *gin.Context) {
+	req := &setAllowedHoursReq{}
+	err := json.NewDecoder(c.Request.Body).Decode(req)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	flight := &ds.Flight{}
+	flight.ID = uint(req.flightId)
+	flight.AllowedHours = req.allowedHours
+
+	_userUUID, _ := c.Get("userUUID")
+	userUUID := _userUUID.(uuid.UUID)
+
+	a.repo.EditFlight(flight, userUUID)
 }
 
 func (a *Application) add_image(c *gin.Context) {
