@@ -107,9 +107,9 @@ func (a *Application) StartServer() {
 	a.r.PUT("flight/delete/:flight_id", a.delete_flight)
 	a.r.PUT("flight_to_region/delete", a.delete_flight_to_region)
 	a.r.PUT("flight/edit", a.edit_flight)
-	a.r.PUT("region/delete/:region_name", a.delete_region)
+	a.r.DELETE("region/delete/:region_name", a.delete_region)
 	a.r.PUT("region/edit", a.edit_region)
-	a.r.PUT("region/add", a.add_region)
+	a.r.POST("region/add", a.add_region)
 
 	a.r.Run(":80")
 
