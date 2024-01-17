@@ -111,7 +111,7 @@ func (a *Application) StartServer() {
 	a.r.PUT("region/edit", a.edit_region)
 	a.r.PUT("region/add", a.add_region)
 
-	a.r.Run(":8000")
+	a.r.Run(":80")
 
 	log.Println("Server is down")
 }
