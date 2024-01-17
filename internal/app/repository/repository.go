@@ -296,11 +296,11 @@ func (r *Repository) Book(requestBody ds.BookRequestBody, userUUID uuid.UUID) er
 	}
 
 	current_date := datatypes.Date(time.Now())
-	takeoff_date, err := time.Parse(time.RFC3339, requestBody.TakeoffDate+"T00:00:00Z")
+	takeoff_date, err := time.Parse(time.RFC3339, requestBody.TakeoffDate)
 	if err != nil {
 		return err
 	}
-	arrival_date, err := time.Parse(time.RFC3339, requestBody.ArrivalDate+"T00:00:00Z")
+	arrival_date, err := time.Parse(time.RFC3339, requestBody.ArrivalDate)
 	if err != nil {
 		return err
 	}
