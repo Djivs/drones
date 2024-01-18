@@ -432,7 +432,8 @@ func (r *Repository) SetFlightModerator(flightID int, moderatorUUID uuid.UUID) e
 }
 
 func (r *Repository) ChangeFlightStatusUser(id int, status string, userUUID uuid.UUID) error {
-	return r.db.Model(&ds.Flight{}).Where("id = ?", id).Where("user_refer = ?", userUUID).Update("status", status).Error
+	return r.db.Raw("UPDATE flights SET status = ? where id = ? and user_refer = ?", status, id, userUUID).Error
+	// return r.db.Model(&ds.Flight{}).Where("id = ?", id).Where("user_refer = ?", userUUID).Update("status", status).Error
 }
 
 func (r *Repository) ChangeFlightStatus(id int, status string) error {
