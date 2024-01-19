@@ -320,6 +320,7 @@ func (a *Application) get_flights(c *gin.Context) {
 	endDate := c.Query("endDate")
 
 	flights, err := a.repo.GetFlights(status, startDate, endDate, roleNumber, userUUID)
+	log.Println(flights)
 	if err != nil {
 		c.Error(err)
 		return
