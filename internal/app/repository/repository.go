@@ -166,11 +166,11 @@ func (r *Repository) GetFlights(status string, startDate string, endDate string,
 	}
 
 	for i := range flights {
-		if flights[i].ModeratorRefer != uuid.Nil {
-			moderator, _ := r.GetUserByID(flights[i].ModeratorRefer)
+		if flights[i].ModeratorRefer != nil {
+			moderator, _ := r.GetUserByID(*flights[i].ModeratorRefer)
 			flights[i].Moderator = *moderator
 		}
-		user, _ := r.GetUserByID(flights[i].UserRefer)
+		user, _ := r.GetUserByID(*flights[i].UserRefer)
 		flights[i].User = *user
 	}
 
@@ -306,7 +306,7 @@ func (r *Repository) EditRegion(region *ds.Region) error {
 
 func (r *Repository) EditFlight(flight *ds.Flight, moderatorUUID uuid.UUID) error {
 	flight.DateProcessed = time.Now()
-	flight.ModeratorRefer = moderatorUUID
+	flight.ModeratorRefer = &moderatorUUID
 	return r.db.Model(&ds.Flight{}).Where("id = ?", flight.ID).Updates(flight).Error
 }
 
@@ -336,7 +336,7 @@ func (r *Repository) Book(requestBody ds.BookRequestBody, userUUID uuid.UUID) er
 	flight := ds.Flight{}
 	flight.TakeoffDate = takeoff_date
 	flight.ArrivalDate = arrival_date
-	flight.UserRefer = userUUID
+	flight.UserRefer = &userUUID
 	flight.DateCreated = time.Now()
 	flight.Status = requestBody.Status
 
