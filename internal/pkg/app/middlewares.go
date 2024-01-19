@@ -17,6 +17,12 @@ const jwtPrefix = "Bearer "
 
 func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gin.Context) {
 	return func(c *gin.Context) {
+		for _, element := range assignedRoles {
+			if element == role.Undefined {
+				return
+			}
+
+		}
 		jwtStr := c.GetHeader("Authorization")
 
 		if jwtStr == "" {
@@ -62,6 +68,11 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 		isAssigned := false
 
 		for _, oneOfAssignedRole := range assignedRoles {
+			if oneOfAssignedRole == role.Undefined {
+				c.Set("role", myClaims.Role)
+				c.Set("userUUID", myClaims.UserUUID)
+				return
+			}
 			if myClaims.Role == oneOfAssignedRole {
 				isAssigned = true
 				break
