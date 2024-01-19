@@ -143,7 +143,6 @@ func (a *Application) get_regions(c *gin.Context) {
 	_userUUID, ok := c.Get("userUUID")
 
 	if !ok {
-		log.Println("not ok")
 		c.JSON(http.StatusOK, gin.H{
 			"regions": regions,
 		})
@@ -155,12 +154,9 @@ func (a *Application) get_regions(c *gin.Context) {
 	draft_flight, err := a.repo.GetDraftFlight(userUUID)
 
 	if err != nil {
-		log.Println(err)
 		c.String(http.StatusInternalServerError, "Возникла ошибка при поиске заявки-черновика")
 		return
 	}
-
-	log.Println(draft_flight)
 
 	c.JSON(http.StatusOK, gin.H{
 		"regions":      regions,
@@ -321,7 +317,6 @@ func (a *Application) get_flights(c *gin.Context) {
 	endDate := c.Query("endDate")
 
 	flights, err := a.repo.GetFlights(status, startDate, endDate, roleNumber, userUUID)
-	log.Println(flights)
 	if err != nil {
 		c.Error(err)
 		return
@@ -401,7 +396,6 @@ func (a *Application) flight_regions(c *gin.Context) { // нужно добав�
 	}
 
 	regions, err := a.repo.GetFlightRegions(flight_id)
-	log.Println(regions)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Не получается достать регионы связанные с полётом!")
 		return
@@ -513,7 +507,7 @@ func (a *Application) delete_flight(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusFound, "Flight was successfully deleted")
+	c.String(http.StatusOK, "Flight was successfully deleted")
 }
 
 // @Summary      Удаляет связь региона с заявкой
@@ -681,7 +675,6 @@ func (a *Application) logout(c *gin.Context) {
 	})
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
-		log.Println(err)
 
 		return
 	}
@@ -830,7 +823,6 @@ func (a *Application) add_image(c *gin.Context) {
 	region_id, err := strconv.Atoi(c.Param("region_id"))
 	if err != nil {
 		c.String(http.StatusBadRequest, "Не получается прочитать ID региона")
-		log.Println("Не получается прочитать ID региона")
 		return
 	}
 
@@ -838,7 +830,6 @@ func (a *Application) add_image(c *gin.Context) {
 
 	if err != nil {
 		c.String(http.StatusBadRequest, "Не получается распознать картинку")
-		log.Println("Не получается распознать картинку")
 		return
 	}
 	defer image.Close()

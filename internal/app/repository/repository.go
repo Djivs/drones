@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -165,8 +164,6 @@ func (r *Repository) GetFlights(status string, startDate string, endDate string,
 	if err != nil {
 		return nil, err
 	}
-
-	log.Println(flights)
 
 	for i := range flights {
 		if flights[i].ModeratorRefer != nil {
