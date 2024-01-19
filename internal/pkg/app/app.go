@@ -86,7 +86,7 @@ func (a *Application) StartServer() {
 	docs.SwaggerInfo.BasePath = "/"
 	a.r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	a.r.GET("regions", a.get_regions)
+	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User, role.Undefined)).GET("regions", a.get_regions)
 	a.r.GET("region/:region", a.get_region)
 
 	// registration & etc
@@ -158,6 +158,8 @@ func (a *Application) get_regions(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Возникла ошибка при поиске заявки-черновика")
 		return
 	}
+
+	log.Println(draft_flight)
 
 	c.JSON(http.StatusOK, gin.H{
 		"regions":      regions,
