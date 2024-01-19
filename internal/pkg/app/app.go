@@ -763,6 +763,18 @@ func (a *Application) add_region_to_flight(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Не могу найти черновой полёт!")
 	}
 
+	if draft.Status == "" {
+		new_draft := ds.Flight{}
+		new_draft.UserRefer = userUUID
+		new_draft.DateCreated = time.Now()
+		new_draft.Status = "Черновик"
+		err := a.repo.CreateFlight(new_draft)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Не могу создать черновую заявку!")
+			return
+		}
+	}
+
 	region_to_draft := ds.FlightToRegion{}
 	region_to_draft.FlightRefer = int(draft.ID)
 	region_to_draft.RegionRefer = region_id
