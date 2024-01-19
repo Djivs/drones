@@ -143,6 +143,7 @@ func (a *Application) get_regions(c *gin.Context) {
 	_userUUID, ok := c.Get("userUUID")
 
 	if !ok {
+		log.Println("not ok")
 		c.JSON(http.StatusOK, gin.H{
 			"regions": regions,
 		})

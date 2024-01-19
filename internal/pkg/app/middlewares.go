@@ -17,9 +17,11 @@ const jwtPrefix = "Bearer "
 
 func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gin.Context) {
 	return func(c *gin.Context) {
+		isPassing := false
 		for _, element := range assignedRoles {
 			if element == role.Undefined {
-				return
+				isPassing = true
+				break
 			}
 
 		}
@@ -28,7 +30,7 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 		if jwtStr == "" {
 			var cookieErr error
 			jwtStr, cookieErr = c.Cookie("drones-api-token")
-			if cookieErr != nil {
+			if cookieErr != nil && !isPassing {
 				c.AbortWithStatus(http.StatusBadRequest)
 			}
 		}
@@ -42,13 +44,13 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 		jwtStr = jwtStr[len(jwtPrefix):]
 
 		err := a.redis.CheckJWTInBlackList(c.Request.Context(), jwtStr)
-		if err == nil { // значит что токен в блеклисте
+		if err == nil && !isPassing { // значит что токен в блеклисте
 			c.AbortWithStatus(http.StatusForbidden)
 
 			return
 		}
 
-		if !errors.Is(err, redis.Nil) { // значит что это не ошибка отсуствия - внутренняя ошибка
+		if !isPassing && !errors.Is(err, redis.Nil) { // значит что это не ошибка отсуствия - внутренняя ошибка
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
@@ -56,7 +58,7 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 		token, err := jwt.ParseWithClaims(jwtStr, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte("test"), nil
 		})
-		if err != nil {
+		if !isPassing && err != nil {
 			c.AbortWithStatus(http.StatusForbidden)
 			log.Println(err)
 
@@ -79,7 +81,7 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 			}
 		}
 
-		if !isAssigned {
+		if !isPassing && !isAssigned {
 			c.AbortWithStatus(http.StatusForbidden)
 			log.Printf("role %d is not assigned in %d", myClaims.Role, assignedRoles)
 			return
