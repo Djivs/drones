@@ -246,7 +246,7 @@ func (r *Repository) ModConfirmFlight(uuid uuid.UUID, flight_id int, confirm boo
 		new_status = "Завершён"
 	}
 
-	if err := tx.Exec(`UPDATE public.flights SET status = ?, moderator_refer = ?, WHERE id = ?`, new_status, uuid, flight_id).Error; err != nil {
+	if err := tx.Exec(`UPDATE public.flights SET status = ?, moderator_refer = ? WHERE id = ?`, new_status, uuid, flight_id).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -304,9 +304,8 @@ func (r *Repository) EditRegion(region *ds.Region) error {
 	return r.db.Model(&ds.Region{}).Where("name = ?", region.Name).Updates(region).Error
 }
 
-func (r *Repository) EditFlight(flight *ds.Flight, moderatorUUID uuid.UUID) error {
-	flight.DateProcessed = time.Now()
-	flight.ModeratorRefer = &moderatorUUID
+// TODO: check user
+func (r *Repository) EditFlight(flight *ds.Flight) error {
 	return r.db.Model(&ds.Flight{}).Where("id = ?", flight.ID).Updates(flight).Error
 }
 

@@ -98,6 +98,7 @@ func (a *Application) StartServer() {
 	a.r.POST("region/add_to_flight/:id", a.add_region_to_flight)
 	a.r.DELETE("flight_to_region/delete", a.delete_flight_to_region)
 	a.r.GET("flights", a.get_flights)
+	a.r.PUT("flight/edit", a.edit_flight)
 	a.r.PUT("book", a.book)
 	a.r.PUT("flight/status_change", a.flight_status_change)
 	a.r.DELETE("flight/delete/:flight_id", a.delete_flight)
@@ -107,8 +108,7 @@ func (a *Application) StartServer() {
 
 	//a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).POST("region/add_image/:region_id", a.add_image)
-	a.r.PUT("flight/moderator_confirm/:flight_id", a.mod_confirm_flight)
-	a.r.PUT("flight/edit", a.edit_flight)
+	a.r.PUT("flight/moderator_confirm", a.mod_confirm_flight)
 	a.r.DELETE("region/delete/:region_name", a.delete_region)
 	a.r.PUT("region/edit", a.edit_region)
 	a.r.POST("region/add", a.add_region)
@@ -365,20 +365,19 @@ func (a *Application) edit_flight(c *gin.Context) {
 	var requestBody ds.EditFlightRequestBody
 
 	if err := c.BindJSON(&requestBody); err != nil {
+		log.Println(err)
 		c.String(http.StatusBadRequest, "Передан плохой json")
 		return
 	}
 
-	_userUUID, _ := c.Get("userUUID")
-	userUUID := _userUUID.(uuid.UUID)
+	// _userUUID, _ := c.Get("userUUID")
+	// userUUID := _userUUID.(uuid.UUID)
 
 	var flight = ds.Flight{}
-	flight.ArrivalDate = requestBody.ArrivalDate
-	flight.TakeoffDate = requestBody.TakeoffDate
+	flight.ArrivalDate = requestBody.ArrivalDate.Add(-3 * time.Hour)
+	flight.TakeoffDate = requestBody.TakeoffDate.Add(-3 * time.Hour)
 	flight.ID = uint(requestBody.FlightID)
-	flight.Status = requestBody.Status
-
-	err := a.repo.EditFlight(&flight, userUUID)
+	err := a.repo.EditFlight(&flight)
 
 	if err != nil {
 		c.Error(err)
@@ -695,7 +694,7 @@ type setAllowedHoursReq struct {
 }
 
 func (a *Application) mod_confirm_flight(c *gin.Context) {
-	id_param := c.Param("flight_id")
+	id_param := c.Query("flight_id")
 	flight_id, err := strconv.Atoi(id_param)
 
 	if err != nil {
@@ -807,10 +806,10 @@ func (a *Application) set_allowed_hours(c *gin.Context) {
 	flight.ID = uint(req.flightId)
 	flight.AllowedHours = req.allowedHours
 
-	_userUUID, _ := c.Get("userUUID")
-	userUUID := _userUUID.(uuid.UUID)
+	// _userUUID, _ := c.Get("userUUID")
+	// userUUID := _userUUID.(uuid.UUID)
 
-	err = a.repo.EditFlight(flight, userUUID)
+	err = a.repo.EditFlight(flight)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return

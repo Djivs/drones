@@ -13,7 +13,6 @@ type EditFlightRequestBody struct {
 	FlightID    int       `json:"flightID"`
 	TakeoffDate time.Time `json:"takeoffDate"`
 	ArrivalDate time.Time `json:"arrivalDate"`
-	Status      string    `json:"status"`
 }
 
 type SetFlightRegionsRequestBody struct {
