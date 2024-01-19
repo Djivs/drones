@@ -96,6 +96,7 @@ func (a *Application) StartServer() {
 
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).GET("flight", a.get_flight)
 	a.r.POST("region/add_to_flight/:id", a.add_region_to_flight)
+	a.r.DELETE("flight_to_region/delete", a.delete_flight_to_region)
 	a.r.GET("flights", a.get_flights)
 	a.r.PUT("book", a.book)
 	a.r.PUT("flight/status_change", a.flight_status_change)
@@ -107,7 +108,6 @@ func (a *Application) StartServer() {
 	//a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).POST("region/add_image/:region_id", a.add_image)
 	a.r.PUT("flight/moderator_confirm/:flight_id", a.mod_confirm_flight)
-	a.r.DELETE("flight_to_region/delete", a.delete_flight_to_region)
 	a.r.PUT("flight/edit", a.edit_flight)
 	a.r.DELETE("region/delete/:region_name", a.delete_region)
 	a.r.PUT("region/edit", a.edit_region)
@@ -524,14 +524,18 @@ func (a *Application) delete_flight(c *gin.Context) {
 // @Param request_body body ds.DeleteFlightToRegionRequestBody true "Тело запроса"
 // @Router       /flight_to_region/delete [put]
 func (a *Application) delete_flight_to_region(c *gin.Context) {
-	var requestBody ds.DeleteFlightToRegionRequestBody
+	region_param := c.Query("region_id")
+	flight_param := c.Query("flight_id")
 
-	if err := c.BindJSON(&requestBody); err != nil {
-		c.Error(err)
+	region_id, err := strconv.Atoi(region_param)
+	flight_id, err := strconv.Atoi(flight_param)
+
+	if err != nil {
+		c.String(http.StatusBadRequest, "Переданы некорректные ID")
 		return
 	}
 
-	err := a.repo.DeleteFlightToRegion(requestBody.FlightID, requestBody.RegionID)
+	err = a.repo.DeleteFlightToRegion(flight_id, region_id)
 
 	if err != nil {
 		c.Error(err)

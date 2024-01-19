@@ -183,7 +183,7 @@ func (r *Repository) GetFlights(status string, startDate string, endDate string,
 func (r *Repository) GetDraftFlight(user uuid.UUID) (ds.Flight, error) {
 	flight := ds.Flight{}
 
-	err := r.db.Where("user_refer = ?", user).Find(&flight).Error
+	err := r.db.Where("user_refer = ?", user).Where("status = ?", "Черновик").Find(&flight).Error
 
 	return flight, err
 }
