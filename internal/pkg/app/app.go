@@ -96,6 +96,7 @@ func (a *Application) StartServer() {
 	a.r.POST("/logout", a.logout)
 
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).GET("flight", a.get_flight)
+	a.r.POST("region/add_to_flight/:id", a.add_region_to_flight)
 	a.r.GET("flights", a.get_flights)
 	a.r.PUT("book", a.book)
 	a.r.PUT("flight/status_change", a.flight_status_change)
@@ -132,7 +133,7 @@ func (a *Application) get_regions(c *gin.Context) {
 	var district = c.Query("district")
 	var status = c.Query("status")
 
-	regions, err := a.repo.GetAllRegions(name_pattern, district, status)
+	regions, err := a.repo.GetRegions(name_pattern, district, status)
 	if err != nil {
 		c.Error(err)
 		return
@@ -339,7 +340,7 @@ func (a *Application) get_flights(c *gin.Context) {
 	startDate := c.Query("startDate")
 	endDate := c.Query("endDate")
 
-	flights, err := a.repo.GetAllFlights(status, startDate, endDate, roleNumber, userUUID)
+	flights, err := a.repo.GetFlights(status, startDate, endDate, roleNumber, userUUID)
 	if err != nil {
 		c.Error(err)
 		return
@@ -715,6 +716,36 @@ type setAllowedHoursReq struct {
 	allowedHours string
 }
 
+func (a *Application) add_region_to_flight(c *gin.Context) {
+	region_param := c.Param("id")
+
+	region_id, err := strconv.Atoi(region_param)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	_userUUID, _ := c.Get("userUUID")
+	userUUID := _userUUID.(uuid.UUID)
+
+	draft, err := a.repo.GetDraftFlight(userUUID)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Не могу найти черновой полёт!")
+	}
+
+	region_to_draft := ds.FlightToRegion{}
+	region_to_draft.FlightRefer = int(draft.ID)
+	region_to_draft.RegionRefer = region_id
+
+	err = a.repo.CreateFlightToRegion(region_to_draft)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Не могу связать район с полётом!")
+	}
+
+	c.String(http.StatusOK, "Район добавлен в черновой полёт!")
+
+}
+
 func (a *Application) set_allowed_hours(c *gin.Context) {
 	req := &setAllowedHoursReq{}
 	err := json.NewDecoder(c.Request.Body).Decode(req)
@@ -730,7 +761,13 @@ func (a *Application) set_allowed_hours(c *gin.Context) {
 	_userUUID, _ := c.Get("userUUID")
 	userUUID := _userUUID.(uuid.UUID)
 
-	a.repo.EditFlight(flight, userUUID)
+	err = a.repo.EditFlight(flight, userUUID)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.String(http.StatusOK, "Разрешённые часы выставлены!")
 }
 
 func (a *Application) add_image(c *gin.Context) {

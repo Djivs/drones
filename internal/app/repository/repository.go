@@ -115,7 +115,7 @@ func (r *Repository) GetUserRole(name string) (role.Role, error) {
 	return user.Role, nil
 }
 
-func (r *Repository) GetAllRegions(name_pattern string, district string, status string) ([]ds.Region, error) {
+func (r *Repository) GetRegions(name_pattern string, district string, status string) ([]ds.Region, error) {
 	regions := []ds.Region{}
 
 	var tx *gorm.DB = r.db
@@ -140,7 +140,7 @@ func (r *Repository) GetAllRegions(name_pattern string, district string, status 
 	return regions, nil
 }
 
-func (r *Repository) GetAllFlights(status string, startDate string, endDate string, roleNumber role.Role, userUUID uuid.UUID) ([]ds.Flight, error) {
+func (r *Repository) GetFlights(status string, startDate string, endDate string, roleNumber role.Role, userUUID uuid.UUID) ([]ds.Flight, error) {
 	flights := []ds.Flight{}
 
 	var tx *gorm.DB = r.db
