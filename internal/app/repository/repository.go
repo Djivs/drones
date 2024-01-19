@@ -206,13 +206,13 @@ func (r *Repository) LogicalDeleteRegion(region_name string) error {
 	tx := r.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
-			rx.Rollback();
+			tx.Rollback()
 		}
 	}()
 
-	if (err := tx.Exec(`UPDATE public.regions SET status = ? WHERE name = ?`, "Недоступен", region_name).Error; err != nil) {
-		tx.Rollback();
-		return err;
+	if err := tx.Exec(`UPDATE public.regions SET status = ? WHERE name = ?`, "Недоступен", region_name).Error; err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	return tx.Commit().Error
@@ -222,13 +222,13 @@ func (r *Repository) LogicalDeleteFlight(flight_id int) error {
 	tx := r.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
-			rx.Rollback();
+			tx.Rollback()
 		}
 	}()
 
-	if (err := tx.Exec(`UPDATE public.flights SET status = ? WHERE id = ?`, "Удалён", flight_id).Error; err != nil) {
-		tx.Rollback();
-		return err;
+	if err := tx.Exec(`UPDATE public.flights SET status = ? WHERE id = ?`, "Удалён", flight_id).Error; err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	return tx.Commit().Error
@@ -252,13 +252,13 @@ func (r *Repository) DeleteRestoreRegion(region_name string) error {
 	tx := r.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
-			rx.Rollback();
+			tx.Rollback()
 		}
 	}()
 
-	if (err := tx.Exec(`UPDATE public.regions SET status = ? WHERE name = ?`, new_status, region_name).Error; err != nil) {
-		tx.Rollback();
-		return err;
+	if err := tx.Exec(`UPDATE public.regions SET status = ? WHERE name = ?`, new_status, region_name).Error; err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	return tx.Commit().Error
@@ -466,7 +466,6 @@ func (r *Repository) ChangeFlightStatus(id int, status string) error {
 func (r *Repository) DeleteFlightToRegion(flight_id int, region_id int) error {
 	return r.db.Where("flight_refer = ?", flight_id).Where("region_refer = ?", region_id).Delete(&ds.FlightToRegion{}).Error
 }
-
 
 func (r *Repository) Register(user *ds.User) error {
 	if user.UUID == uuid.Nil {
