@@ -265,7 +265,7 @@ func (r *Repository) UserConfirmFlight(uuid uuid.UUID, flight_id int) error {
 		}
 	}()
 
-	if err := tx.Exec(`UPDATE public.flights SET status = ?, user_refer = ?, WHERE id = ?`, "Сформирован", uuid, flight_id).Error; err != nil {
+	if err := tx.Exec(`UPDATE public.flights SET status = ?, user_refer = ? WHERE id = ?`, "Сформирован", uuid, flight_id).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

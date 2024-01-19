@@ -702,7 +702,7 @@ type setAllowedHoursReq struct {
 }
 
 func (a *Application) mod_confirm_flight(c *gin.Context) {
-	id_param := c.Param("id")
+	id_param := c.Param("flight_id")
 	flight_id, err := strconv.Atoi(id_param)
 
 	if err != nil {
@@ -734,7 +734,7 @@ func (a *Application) mod_confirm_flight(c *gin.Context) {
 }
 
 func (a *Application) user_confirm_flight(c *gin.Context) {
-	id_param := c.Param("id")
+	id_param := c.Param("flight_id")
 	flight_id, err := strconv.Atoi(id_param)
 
 	if err != nil {
