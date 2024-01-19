@@ -1,6 +1,6 @@
 package ds
 
-import "gorm.io/datatypes"
+import "time"
 
 type BookRequestBody struct {
 	TakeoffDate string
@@ -10,10 +10,10 @@ type BookRequestBody struct {
 }
 
 type EditFlightRequestBody struct {
-	FlightID    int            `json:"flightID"`
-	TakeoffDate datatypes.Date `json:"takeoffDate"`
-	ArrivalDate datatypes.Date `json:"arrivalDate"`
-	Status      string         `json:"status"`
+	FlightID    int       `json:"flightID"`
+	TakeoffDate time.Time `json:"takeoffDate"`
+	ArrivalDate time.Time `json:"arrivalDate"`
+	Status      string    `json:"status"`
 }
 
 type SetFlightRegionsRequestBody struct {

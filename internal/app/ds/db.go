@@ -2,9 +2,9 @@ package ds
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/datatypes"
 )
 
 type Region struct {
@@ -23,18 +23,18 @@ type Region struct {
 }
 
 type Flight struct {
-	ID             uint           `gorm:"primaryKey;AUTO_INCREMENT"`
-	ModeratorRefer uuid.UUID      `gorm:"type:uuid"`
-	UserRefer      uuid.UUID      `gorm:"type:uuid;not null"`
-	Status         string         `gorm:"type:varchar(50)"`
-	DateCreated    datatypes.Date `gorm:"not null" swaggertype:"primitive,string"`
-	DateProcessed  datatypes.Date `swaggertype:"primitive,string"`
-	DateFinished   datatypes.Date `swaggertype:"primitive,string"`
-	Moderator      User           `gorm:"foreignKey:ModeratorRefer;references:UUID"`
-	User           User           `gorm:"foreignKey:UserRefer;references:UUID;not null"`
-	TakeoffDate    datatypes.Date `gorm:"not null" swaggertype:"primitive,string"`
-	ArrivalDate    datatypes.Date `gorm:"not null" swaggertype:"primitive,string"`
-	AllowedHours   string         `swaggertype:"primitive,string"`
+	ID             uint      `gorm:"primaryKey;AUTO_INCREMENT"`
+	ModeratorRefer uuid.UUID `gorm:"type:uuid"`
+	UserRefer      uuid.UUID `gorm:"type:uuid;not null"`
+	Status         string    `gorm:"type:varchar(50)"`
+	DateCreated    time.Time `gorm:"not null" swaggertype:"primitive,string"`
+	DateProcessed  time.Time `swaggertype:"primitive,string"`
+	DateFinished   time.Time `swaggertype:"primitive,string"`
+	Moderator      User      `gorm:"foreignKey:ModeratorRefer;references:UUID"`
+	User           User      `gorm:"foreignKey:UserRefer;references:UUID;not null"`
+	TakeoffDate    time.Time `swaggertype:"primitive,string"`
+	ArrivalDate    time.Time `swaggertype:"primitive,string"`
+	AllowedHours   string    `swaggertype:"primitive,string"`
 }
 
 type FlightToRegion struct {

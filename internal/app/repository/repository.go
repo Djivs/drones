@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/datatypes"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -234,21 +233,7 @@ func (r *Repository) LogicalDeleteFlight(flight_id int) error {
 	return tx.Commit().Error
 }
 
-func (r *Repository) DeleteRestoreRegion(region_name string) error {
-	var new_status string
-
-	region_status, err := r.GetRegionStatus(region_name)
-
-	if err != nil {
-		return err
-	}
-
-	if region_status == "Действует" {
-		new_status = "Недоступен"
-	} else {
-		new_status = "Действует"
-	}
-
+func (r *Repository) ModConfirmFlight(uuid uuid.UUID, flight_id int, confirm bool) error {
 	tx := r.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -256,13 +241,33 @@ func (r *Repository) DeleteRestoreRegion(region_name string) error {
 		}
 	}()
 
-	if err := tx.Exec(`UPDATE public.regions SET status = ? WHERE name = ?`, new_status, region_name).Error; err != nil {
+	new_status := "Отклонён"
+	if confirm {
+		new_status = "Завершён"
+	}
+
+	if err := tx.Exec(`UPDATE public.flights SET status = ?, moderator_refer = ?, WHERE id = ?`, new_status, uuid, flight_id).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 
 	return tx.Commit().Error
+}
 
+func (r *Repository) UserConfirmFlight(uuid uuid.UUID, flight_id int) error {
+	tx := r.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Exec(`UPDATE public.flights SET status = ?, user_refer = ?, WHERE id = ?`, "Сформирован", uuid, flight_id).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }
 
 func (r *Repository) FindRegion(region ds.Region) (ds.Region, error) {
@@ -300,7 +305,7 @@ func (r *Repository) EditRegion(region *ds.Region) error {
 }
 
 func (r *Repository) EditFlight(flight *ds.Flight, moderatorUUID uuid.UUID) error {
-	flight.DateProcessed = datatypes.Date(time.Now())
+	flight.DateProcessed = time.Now()
 	flight.ModeratorRefer = moderatorUUID
 	return r.db.Model(&ds.Flight{}).Where("id = ?", flight.ID).Updates(flight).Error
 }
@@ -319,7 +324,6 @@ func (r *Repository) Book(requestBody ds.BookRequestBody, userUUID uuid.UUID) er
 		region_ids = append(region_ids, region_id)
 	}
 
-	current_date := datatypes.Date(time.Now())
 	takeoff_date, err := time.Parse(time.RFC3339, requestBody.TakeoffDate)
 	if err != nil {
 		return err
@@ -330,10 +334,10 @@ func (r *Repository) Book(requestBody ds.BookRequestBody, userUUID uuid.UUID) er
 	}
 
 	flight := ds.Flight{}
-	flight.TakeoffDate = datatypes.Date(takeoff_date)
-	flight.ArrivalDate = datatypes.Date(arrival_date)
+	flight.TakeoffDate = takeoff_date
+	flight.ArrivalDate = arrival_date
 	flight.UserRefer = userUUID
-	flight.DateCreated = current_date
+	flight.DateCreated = time.Now()
 	flight.Status = requestBody.Status
 
 	err = r.db.Omit("moderator_refer", "date_processed", "date_finished").Create(&flight).Error

@@ -25,7 +25,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"gorm.io/datatypes"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -100,12 +99,14 @@ func (a *Application) StartServer() {
 	a.r.GET("flights", a.get_flights)
 	a.r.PUT("book", a.book)
 	a.r.PUT("flight/status_change", a.flight_status_change)
+	a.r.DELETE("flight/delete/:flight_id", a.delete_flight)
+	a.r.PUT("flight/user_confirm/:flight_id", a.user_confirm_flight)
 	a.r.GET("flight_regions/:flight_id", a.flight_regions)
 	a.r.PUT("flight/set_regions", a.set_flight_regions)
 
-	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
-	a.r.POST("region/add_image/:region_id", a.add_image)
-	a.r.PUT("flight/delete/:flight_id", a.delete_flight)
+	//a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
+	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).POST("region/add_image/:region_id", a.add_image)
+	a.r.PUT("flight/moderator_confirm/:flight_id", a.mod_confirm_flight)
 	a.r.DELETE("flight_to_region/delete", a.delete_flight_to_region)
 	a.r.PUT("flight/edit", a.edit_flight)
 	a.r.DELETE("region/delete/:region_name", a.delete_region)
@@ -271,30 +272,6 @@ func (a *Application) delete_region(c *gin.Context) {
 	c.String(http.StatusFound, "Регион был успешно удалён")
 }
 
-// @Summary      Удаляет или восстанавливает регион
-// @Description  Меняет статус региона с "Действует" на "Недоступен" и наобороь
-// @Tags         Регионы
-// @Produce      json
-// @Success      200  {object}  string
-// @Param region_name path string true "Имя региона"
-// @Router       /region/delete_restore/{region_name} [get]
-func (a *Application) delete_restore_region(c *gin.Context) {
-	region_name := c.Param("region_name")
-
-	if region_name == "" {
-		c.String(http.StatusBadRequest, "Нужно предоставить название региона")
-	}
-
-	err := a.repo.DeleteRestoreRegion(region_name)
-
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	c.String(http.StatusFound, "Статус региона был успешно изменён")
-}
-
 func (a *Application) book(c *gin.Context) {
 	var request_body ds.BookRequestBody
 
@@ -397,8 +374,8 @@ func (a *Application) edit_flight(c *gin.Context) {
 	userUUID := _userUUID.(uuid.UUID)
 
 	var flight = ds.Flight{}
-	flight.ArrivalDate = datatypes.Date(requestBody.ArrivalDate)
-	flight.TakeoffDate = datatypes.Date(requestBody.TakeoffDate)
+	flight.ArrivalDate = requestBody.ArrivalDate
+	flight.TakeoffDate = requestBody.TakeoffDate
 	flight.ID = uint(requestBody.FlightID)
 	flight.Status = requestBody.Status
 
@@ -714,6 +691,59 @@ func (a *Application) logout(c *gin.Context) {
 type setAllowedHoursReq struct {
 	flightId     int
 	allowedHours string
+}
+
+func (a *Application) mod_confirm_flight(c *gin.Context) {
+	id_param := c.Param("id")
+	flight_id, err := strconv.Atoi(id_param)
+
+	if err != nil {
+		c.String(http.StatusBadRequest, "Передан некорректный ID полёта")
+		return
+	}
+
+	confirm_param := c.Query("confirm")
+	confirm := true
+	if confirm_param == "True" {
+		confirm = true
+	} else if confirm_param == "False" {
+		confirm = false
+	} else {
+		c.String(http.StatusBadRequest, "Передан некорректный флаг подтверждения")
+		return
+	}
+
+	_userUUID, _ := c.Get("userUUID")
+	userUUID := _userUUID.(uuid.UUID)
+
+	err = a.repo.ModConfirmFlight(userUUID, flight_id, confirm)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Не получается обновить статус!")
+		return
+	}
+
+	c.String(http.StatusOK, "Статус обновлён!")
+}
+
+func (a *Application) user_confirm_flight(c *gin.Context) {
+	id_param := c.Param("id")
+	flight_id, err := strconv.Atoi(id_param)
+
+	if err != nil {
+		c.String(http.StatusBadRequest, "Передан некорректный ID полёта")
+		return
+	}
+
+	_userUUID, _ := c.Get("userUUID")
+	userUUID := _userUUID.(uuid.UUID)
+
+	err = a.repo.UserConfirmFlight(userUUID, flight_id)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Не получается обновить статус!")
+		return
+	}
+
+	c.String(http.StatusOK, "Статус обновлён!")
 }
 
 func (a *Application) add_region_to_flight(c *gin.Context) {
