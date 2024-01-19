@@ -25,17 +25,18 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 			}
 
 		}
+
 		jwtStr := c.GetHeader("Authorization")
 
 		if jwtStr == "" {
 			var cookieErr error
 			jwtStr, cookieErr = c.Cookie("drones-api-token")
-			if cookieErr != nil && !isPassing {
+			if (cookieErr != nil) && (!isPassing) {
 				c.AbortWithStatus(http.StatusBadRequest)
 			}
 		}
 
-		if !strings.HasPrefix(jwtStr, jwtPrefix) {
+		if !isPassing && !strings.HasPrefix(jwtStr, jwtPrefix) {
 			c.AbortWithStatus(http.StatusForbidden)
 
 			return
@@ -89,6 +90,7 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 
 		c.Set("role", myClaims.Role)
 		c.Set("userUUID", myClaims.UserUUID)
+
 	}
 
 }

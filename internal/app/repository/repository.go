@@ -62,7 +62,7 @@ func (r *Repository) GetUserByID(id uuid.UUID) (*ds.User, error) {
 func (r *Repository) GetUserByLogin(login string) (*ds.User, error) {
 	user := &ds.User{}
 
-	err := r.db.First(user, "name = ?", login).Error
+	err := r.db.Where("name = ?", login).Find(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -246,12 +246,13 @@ func (r *Repository) ModConfirmFlight(uuid uuid.UUID, flight_id int, confirm boo
 		new_status = "Завершён"
 	}
 
-	if err := tx.Exec(`UPDATE public.flights SET status = ?, moderator_refer = ? WHERE id = ?`, new_status, uuid, flight_id).Error; err != nil {
+	if err := tx.Exec(`UPDATE public.flights SET status = ?, moderator_refer = ?, date_processed = ? WHERE id = ?`, new_status, uuid, time.Now(), flight_id).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 
 	return tx.Commit().Error
+
 }
 
 func (r *Repository) UserConfirmFlight(uuid uuid.UUID, flight_id int) error {
@@ -282,7 +283,7 @@ func (r *Repository) FindRegion(region ds.Region) (ds.Region, error) {
 
 func (r *Repository) FindFlight(flight *ds.Flight) (ds.Flight, error) {
 	var result ds.Flight
-	err := r.db.Where(&flight).First(&result).Error
+	err := r.db.Where(&flight).Find(&result).Error
 	if err != nil {
 		return ds.Flight{}, err
 	}

@@ -628,11 +628,16 @@ func (a *Application) register(c *gin.Context) {
 		return
 	}
 	if req.Password == "" {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("Password should not be empty"))
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("Пароль не может быть пустым"))
 		return
 	}
 	if req.Login == "" {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("Name should not be empty"))
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("Имя не может быть пустым"))
+	}
+
+	user, err := a.repo.GetUserByLogin(req.Login)
+	if user.UUID != uuid.Nil {
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("Пользователь с таким именем уже существует!"))
 	}
 
 	err = a.repo.Register(&ds.User{
@@ -755,7 +760,12 @@ func (a *Application) add_region_to_flight(c *gin.Context) {
 		return
 	}
 
-	_userUUID, _ := c.Get("userUUID")
+	_userUUID, ok := c.Get("userUUID")
+	if !ok {
+		c.String(http.StatusInternalServerError, "Не могу распознать uuid")
+		log.Println(_userUUID)
+		return
+	}
 	userUUID := _userUUID.(uuid.UUID)
 
 	draft, err := a.repo.GetDraftFlight(userUUID)
