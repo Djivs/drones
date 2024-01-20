@@ -295,12 +295,12 @@ func (r *Repository) FindFlight(flight *ds.Flight) (ds.Flight, error) {
 	}
 
 	var user ds.User
-	r.db.Where("uuid = ?", result.UserRefer).First(&user)
+	r.db.Where("uuid = ?", result.UserRefer).Find(&user)
 
 	result.User = user
 
 	var moderator ds.User
-	r.db.Where("uuid = ?", result.ModeratorRefer).First(&user)
+	r.db.Where("uuid = ?", result.ModeratorRefer).Find(&user)
 
 	result.Moderator = moderator
 

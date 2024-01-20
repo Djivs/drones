@@ -326,8 +326,8 @@ func (a *Application) get_flights(c *gin.Context) {
 }
 
 type getFlightResp struct {
-	flight  ds.Flight
-	regions []string
+	Flight  ds.Flight
+	Regions []string
 }
 
 // @Summary      Получить заявку
@@ -358,17 +358,19 @@ func (a *Application) get_flight(c *gin.Context) {
 	flight_regions, err := a.repo.GetFlightRegions(int(found_flight.ID))
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Не могу получить районы заявки")
+		return
 	}
 
-	result := getFlightResp{}
+	regions_arr := []string{}
 
 	for _, flight_region := range flight_regions {
-		result.regions = append(result.regions, flight_region.Name)
+		regions_arr = append(regions_arr, flight_region.Name)
 	}
 
-	result.flight = found_flight
-
-	c.JSON(http.StatusOK, result)
+	c.JSON(http.StatusOK, getFlightResp{
+		Flight:  found_flight,
+		Regions: regions_arr,
+	})
 }
 
 // @Summary      Отредактировать заявку
