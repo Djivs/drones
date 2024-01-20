@@ -105,7 +105,6 @@ func (a *Application) StartServer() {
 	a.r.PUT("flight/status_change", a.flight_status_change)
 	a.r.DELETE("flight/delete/:flight_id", a.delete_flight)
 	a.r.PUT("flight/user_confirm/:flight_id", a.user_confirm_flight)
-	a.r.GET("flight_regions/:flight_id", a.flight_regions)
 	a.r.PUT("flight/set_regions", a.set_flight_regions)
 
 	//a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin)).PUT("region/delete_restore/:region_name", a.delete_restore_region)
@@ -326,6 +325,11 @@ func (a *Application) get_flights(c *gin.Context) {
 	c.JSON(http.StatusOK, flights)
 }
 
+type getFlightResp struct {
+	flight  ds.Flight
+	regions []string
+}
+
 // @Summary      Получить заявку
 // @Description  Возвращает заяввку с указанными параметрами
 // @Tags         Заявки
@@ -351,7 +355,20 @@ func (a *Application) get_flight(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, found_flight)
+	flight_regions, err := a.repo.GetFlightRegions(int(found_flight.ID))
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Не могу получить районы заявки")
+	}
+
+	result := getFlightResp{}
+
+	for _, flight_region := range flight_regions {
+		result.regions = append(result.regions, flight_region.Name)
+	}
+
+	result.flight = found_flight
+
+	c.JSON(http.StatusOK, result)
 }
 
 // @Summary      Отредактировать заявку

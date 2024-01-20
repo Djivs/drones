@@ -42,7 +42,9 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 			return
 		}
 
-		jwtStr = jwtStr[len(jwtPrefix):]
+		if len(jwtStr) > len(jwtPrefix) {
+			jwtStr = jwtStr[len(jwtPrefix):]
+		}
 
 		err := a.redis.CheckJWTInBlackList(c.Request.Context(), jwtStr)
 		if err == nil && !isPassing { // значит что токен в блеклисте
@@ -63,6 +65,10 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(context *gi
 			c.AbortWithStatus(http.StatusForbidden)
 			log.Println(err)
 
+			return
+		}
+
+		if len(jwtStr) <= len(jwtPrefix) {
 			return
 		}
 
