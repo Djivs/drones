@@ -160,7 +160,7 @@ func (a *Application) get_regions(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"regions":      regions,
-		"draft_flight": draft_flight,
+		"draft_flight": draft_flight.ID,
 	})
 }
 
@@ -326,7 +326,7 @@ func (a *Application) get_flights(c *gin.Context) {
 }
 
 type getFlightResp struct {
-	Flight  ds.Flight
+	Flight  ds.FlightNoUser
 	Regions []string
 }
 
@@ -368,7 +368,18 @@ func (a *Application) get_flight(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, getFlightResp{
-		Flight:  found_flight,
+		Flight: ds.FlightNoUser{
+			ID:            flight.ID,
+			Status:        flight.Status,
+			DateCreated:   flight.DateCreated,
+			DateProcessed: flight.DateProcessed,
+			DateFinished:  flight.DateFinished,
+			TakeoffDate:   flight.TakeoffDate,
+			ArrivalDate:   flight.ArrivalDate,
+			Moderator:     flight.Moderator.Name,
+			User:          flight.User.Name,
+			AllowedHours:  flight.AllowedHours,
+		},
 		Regions: regions_arr,
 	})
 }

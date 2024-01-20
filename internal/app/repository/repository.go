@@ -245,6 +245,11 @@ func (r *Repository) ModConfirmFlight(uuid uuid.UUID, flight_id int, confirm boo
 	new_status := "Отклонён"
 	if confirm {
 		new_status = "Завершён"
+		if err := tx.Exec(`UPDATE public.flights SET status = ?, moderator_refer = ?, date_processed = ?, date_finished = ? WHERE id = ?`, new_status, uuid, time.Now(), time.Now(), flight_id).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+		return tx.Commit().Error
 	}
 
 	if err := tx.Exec(`UPDATE public.flights SET status = ?, moderator_refer = ?, date_processed = ? WHERE id = ?`, new_status, uuid, time.Now(), flight_id).Error; err != nil {

@@ -44,3 +44,16 @@ type FlightToRegion struct {
 	Flight      Flight `gorm:"foreignKey:FlightRefer"`
 	Region      Region `gorm:"foreignKey:RegionRefer"`
 }
+
+type FlightNoUser struct {
+	ID            uint      `gorm:"primaryKey;AUTO_INCREMENT"`
+	Status        string    `gorm:"type:varchar(50)"`
+	DateCreated   time.Time `gorm:"not null" swaggertype:"primitive,string"`
+	DateProcessed time.Time `swaggertype:"primitive,string"`
+	DateFinished  time.Time `swaggertype:"primitive,string"`
+	TakeoffDate   time.Time `swaggertype:"primitive,string"`
+	ArrivalDate   time.Time `swaggertype:"primitive,string"`
+	Moderator     string
+	User          string
+	AllowedHours  string `swaggertype:"primitive,string"`
+}
