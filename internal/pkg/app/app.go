@@ -322,7 +322,24 @@ func (a *Application) get_flights(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, flights)
+	clean_flights := []ds.FlightNoUser{}
+
+	for _, flight := range flights {
+		clean_flights = append(clean_flights, ds.FlightNoUser{
+			ID:            flight.ID,
+			Status:        flight.Status,
+			DateCreated:   flight.DateCreated,
+			DateProcessed: flight.DateProcessed,
+			DateFinished:  flight.DateFinished,
+			TakeoffDate:   flight.TakeoffDate,
+			ArrivalDate:   flight.ArrivalDate,
+			Moderator:     flight.Moderator.Name,
+			User:          flight.User.Name,
+			AllowedHours:  flight.AllowedHours,
+		})
+	}
+
+	c.JSON(http.StatusOK, clean_flights)
 }
 
 type getFlightResp struct {
