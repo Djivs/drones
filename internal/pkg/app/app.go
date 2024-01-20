@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
@@ -95,6 +96,7 @@ func (a *Application) StartServer() {
 	a.r.POST("/logout", a.logout)
 
 	a.r.Use(a.WithAuthCheck(role.Moderator, role.Admin, role.User)).GET("flight", a.get_flight)
+	a.r.PUT("flight/set_allowed_hours", a.set_allowed_hours)
 	a.r.POST("region/add_to_flight/:id", a.add_region_to_flight)
 	a.r.DELETE("flight_to_region/delete", a.delete_flight_to_region)
 	a.r.GET("flights", a.get_flights)
@@ -112,7 +114,6 @@ func (a *Application) StartServer() {
 	a.r.DELETE("region/delete/:region_name", a.delete_region)
 	a.r.PUT("region/edit", a.edit_region)
 	a.r.POST("region/add", a.add_region)
-	a.r.PUT("flight/set_allowed_hours", a.set_allowed_hours)
 
 	a.r.Run(":80")
 
@@ -730,6 +731,11 @@ func (a *Application) mod_confirm_flight(c *gin.Context) {
 	c.String(http.StatusOK, "Статус обновлён!")
 }
 
+type AllowedHoursReq struct {
+	pk    int
+	token string
+}
+
 func (a *Application) user_confirm_flight(c *gin.Context) {
 	id_param := c.Param("flight_id")
 	flight_id, err := strconv.Atoi(id_param)
@@ -745,6 +751,21 @@ func (a *Application) user_confirm_flight(c *gin.Context) {
 	err = a.repo.UserConfirmFlight(userUUID, flight_id)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Не получается обновить статус!")
+		return
+	}
+
+	jwtStr := c.GetHeader("Authorization")
+	jwtPrefix := "Bearer "
+	jwtStr = jwtStr[len(jwtPrefix):]
+
+	url := "http://127.0.0.1:8000/allowed_hours/"
+
+	jsonPayload := []byte(`{"pk": "` + strconv.Itoa(flight_id) + `", "token": "` + jwtStr + `"}`)
+
+	_, err = http.Post(url, "application/json",
+		bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		fmt.Println("Error sending POST request:", err)
 		return
 	}
 
@@ -812,16 +833,12 @@ func (a *Application) set_allowed_hours(c *gin.Context) {
 		return
 	}
 
-	flight := &ds.Flight{}
-	flight.ID = uint(req.flightId)
-	flight.AllowedHours = req.allowedHours
-
 	// _userUUID, _ := c.Get("userUUID")
 	// userUUID := _userUUID.(uuid.UUID)
 
-	err = a.repo.EditFlight(flight)
+	err = a.repo.SetAllowedHours(req.flightId, req.allowedHours)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 

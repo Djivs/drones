@@ -281,6 +281,10 @@ func (r *Repository) FindRegion(region ds.Region) (ds.Region, error) {
 	}
 }
 
+func (r *Repository) SetAllowedHours(flight_id int, allowed_hours string) error {
+	return r.db.Model(&ds.Flight{}).Where("id = ?", flight_id).Set("allowed_hours", allowed_hours).Error
+}
+
 func (r *Repository) FindFlight(flight *ds.Flight) (ds.Flight, error) {
 	var result ds.Flight
 	err := r.db.Where(&flight).Find(&result).Error
