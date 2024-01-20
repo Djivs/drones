@@ -826,17 +826,18 @@ func (a *Application) add_region_to_flight(c *gin.Context) {
 }
 
 func (a *Application) set_allowed_hours(c *gin.Context) {
-	req := &setAllowedHoursReq{}
-	err := json.NewDecoder(c.Request.Body).Decode(req)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
+
+	log.Println(c.Query("allowed_hours"), c.Query("id"))
 
 	// _userUUID, _ := c.Get("userUUID")
 	// userUUID := _userUUID.(uuid.UUID)
 
-	err = a.repo.SetAllowedHours(req.flightId, req.allowedHours)
+	flight_id, err := strconv.Atoi(c.Query("id"))
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+	}
+
+	err = a.repo.SetAllowedHours(flight_id, c.Query("allowed_hours"))
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
